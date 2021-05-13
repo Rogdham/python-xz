@@ -1,0 +1,36 @@
+{
+  "generate": [
+    {
+      "cmd": "xz --block-list 1234,567,8901,234,5678,90,0",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 1234
+        },
+        {
+          "length": 567
+        },
+        {
+          "length": 8901
+        },
+        {
+          "length": 234
+        },
+        {
+          "length": 5678
+        },
+        {
+          "length": 90
+        },
+        {
+          "length": 3576
+        }
+      ]
+    }
+  ]
+}

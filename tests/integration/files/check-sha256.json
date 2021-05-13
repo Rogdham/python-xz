@@ -1,0 +1,18 @@
+{
+  "generate": [
+    {
+      "cmd": "xz -C sha256",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 10,
+      "blocks": [
+        {
+          "length": 20280
+        }
+      ]
+    }
+  ]
+}

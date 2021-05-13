@@ -1,0 +1,18 @@
+{
+  "generate": [
+    {
+      "cmd": "xz -C none",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 0,
+      "blocks": [
+        {
+          "length": 20280
+        }
+      ]
+    }
+  ]
+}

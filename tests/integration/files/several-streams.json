@@ -1,0 +1,57 @@
+{
+  "generate": [
+    {
+      "cmd": "xz --block-size 5000",
+      "length": 17000
+    },
+    {
+      "cmd": "xz --block-size 1000",
+      "length": 2100
+    },
+    {
+      "cmd": "xz",
+      "length": 1180
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 5000
+        },
+        {
+          "length": 5000
+        },
+        {
+          "length": 5000
+        },
+        {
+          "length": 2000
+        }
+      ]
+    },
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 1000
+        },
+        {
+          "length": 1000
+        },
+        {
+          "length": 100
+        }
+      ]
+    },
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 1180
+        }
+      ]
+    }
+  ]
+}

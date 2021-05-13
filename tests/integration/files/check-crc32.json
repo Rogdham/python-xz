@@ -1,0 +1,18 @@
+{
+  "generate": [
+    {
+      "cmd": "xz -C crc32",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 1,
+      "blocks": [
+        {
+          "length": 20280
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+# for vscode + extensions import when outside of src (e.g. in tests)
+PYTHONPATH=./src

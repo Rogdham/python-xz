@@ -1,0 +1,18 @@
+{
+  "generate": [
+    {
+      "cmd": "xz -C crc64",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 20280
+        }
+      ]
+    }
+  ]
+}

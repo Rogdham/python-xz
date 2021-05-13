@@ -1,0 +1,96 @@
+{
+  "generate": [
+    {
+      "cmd": "xz -C none --block-list 100,1000,200,2000,0",
+      "length": 3600
+    },
+    {
+      "cmd": "head -c 100 /dev/zero"
+    },
+    {
+      "cmd": "xz -C crc32",
+      "length": 10000
+    },
+    {
+      "cmd": "head -c 800 /dev/zero"
+    },
+    {
+      "cmd": "xz -C crc64 --block-list 3000,300,0",
+      "length": 3333
+    },
+    {
+      "cmd": "xz -C sha256 --block-size 600",
+      "length": 3347
+    },
+    {
+      "cmd": "head -c 400 /dev/zero"
+    }
+  ],
+  "streams": [
+    {
+      "check": 0,
+      "blocks": [
+        {
+          "length": 100
+        },
+        {
+          "length": 1000
+        },
+        {
+          "length": 200
+        },
+        {
+          "length": 2000
+        },
+        {
+          "length": 300
+        }
+      ]
+    },
+    {
+      "check": 1,
+      "blocks": [
+        {
+          "length": 10000
+        }
+      ]
+    },
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 3000
+        },
+        {
+          "length": 300
+        },
+        {
+          "length": 33
+        }
+      ]
+    },
+    {
+      "check": 10,
+      "blocks": [
+        {
+          "length": 600
+        },
+        {
+          "length": 600
+        },
+        {
+          "length": 600
+        },
+        {
+          "length": 600
+        },
+        {
+          "length": 600
+        },
+        {
+          "length": 347
+        }
+      ]
+    }
+  ]
+}

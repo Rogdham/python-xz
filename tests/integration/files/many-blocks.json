@@ -1,0 +1,624 @@
+{
+  "generate": [
+    {
+      "cmd": "xz --block-size 100",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 100
+        },
+        {
+          "length": 80
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "generate": [
+    {
+      "cmd": "xz --block-size 15000",
+      "length": 20280
+    },
+    {
+      "cmd": "head -c 100 /dev/zero"
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 15000
+        },
+        {
+          "length": 5280
+        }
+      ]
+    }
+  ]
+}

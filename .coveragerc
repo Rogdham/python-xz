@@ -1,0 +1,20 @@
+[html]
+directory = coverage
+
+[paths]
+source =
+    src/xz/
+    .tox/py*/lib/python*/site-packages/xz/
+    .tox/py*/site-packages/xz/
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    if __name__ == "__main__":
+show_missing = True
+
+[run]
+branch = True
+source = xz

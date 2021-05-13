@@ -1,0 +1,54 @@
+{
+  "generate": [
+    {
+      "cmd": "xz -C none",
+      "length": 5070
+    },
+    {
+      "cmd": "xz -C crc32",
+      "length": 5070
+    },
+    {
+      "cmd": "xz -C crc64",
+      "length": 5070
+    },
+    {
+      "cmd": "xz -C sha256",
+      "length": 5070
+    }
+  ],
+  "streams": [
+    {
+      "check": 0,
+      "blocks": [
+        {
+          "length": 5070
+        }
+      ]
+    },
+    {
+      "check": 1,
+      "blocks": [
+        {
+          "length": 5070
+        }
+      ]
+    },
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 5070
+        }
+      ]
+    },
+    {
+      "check": 10,
+      "blocks": [
+        {
+          "length": 5070
+        }
+      ]
+    }
+  ]
+}

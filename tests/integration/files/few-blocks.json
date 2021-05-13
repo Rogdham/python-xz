@@ -1,0 +1,24 @@
+{
+  "generate": [
+    {
+      "cmd": "xz --block-size 10000",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 10000
+        },
+        {
+          "length": 10000
+        },
+        {
+          "length": 280
+        }
+      ]
+    }
+  ]
+}

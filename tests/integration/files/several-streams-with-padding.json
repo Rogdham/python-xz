@@ -1,0 +1,66 @@
+{
+  "generate": [
+    {
+      "cmd": "xz --block-size 1000",
+      "length": 1500
+    },
+    {
+      "cmd": "head -c 100 /dev/zero"
+    },
+    {
+      "cmd": "xz",
+      "length": 2000
+    },
+    {
+      "cmd": "head -c 200 /dev/zero"
+    },
+    {
+      "cmd": "xz --block-size 4000",
+      "length": 16780
+    },
+    {
+      "cmd": "head -c 400 /dev/zero"
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 1000
+        },
+        {
+          "length": 500
+        }
+      ]
+    },
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 2000
+        }
+      ]
+    },
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 4000
+        },
+        {
+          "length": 4000
+        },
+        {
+          "length": 4000
+        },
+        {
+          "length": 4000
+        },
+        {
+          "length": 780
+        }
+      ]
+    }
+  ]
+}

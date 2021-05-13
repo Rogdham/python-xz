@@ -1,0 +1,39 @@
+{
+  "files.exclude": {
+    "env": true,
+    "**/__pycache__": true,
+    ".eggs": true,
+    "**/*.egg-info": true,
+    ".coverage": true,
+    ".pytest_cache": true,
+    ".tox": true
+  },
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": true,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "files.insertFinalNewline": true,
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.rulers": [88],
+    "editor.wordWrap": "on",
+    "editor.wordWrapColumn": 88
+  },
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "python.envFile": "${workspaceFolder}/.vscode/env",
+  "python.formatting.provider": "black",
+  "python.linting.pylintEnabled": true,
+  "python.testing.pytestEnabled": true,
+  "python.sortImports.args": ["-sp .isort.cfg"]
+}
