@@ -162,3 +162,36 @@ def test_invalid_mode(mode):
     with pytest.raises(ValueError) as exc_info:
         XZFile(filename, mode)
     assert str(exc_info.value) == f"invalid mode: {mode}"
+
+
+def test_fileno(tmp_path):
+    file_path = tmp_path / "file.xz"
+    file_path.write_bytes(FILE_BYTES)
+
+    with file_path.open("rb") as fin:
+        with XZFile(fin) as xzfile:
+            assert xzfile.fileno() == fin.fileno()
+
+
+def test_fileno_error(tmp_path):
+    file_path = tmp_path / "file.xz"
+    file_path.write_bytes(FILE_BYTES)
+
+    class FakeFile:
+        def __init__(self, fileobj):
+            self.fileobj = fileobj
+
+        def read(self, *args, **kwargs):
+            return self.fileobj.read(*args, **kwargs)
+
+        def seek(self, *args, **kwargs):
+            return self.fileobj.seek(*args, **kwargs)
+
+        def tell(self, *args, **kwargs):
+            return self.fileobj.tell(*args, **kwargs)
+
+    with file_path.open("rb") as fin:
+        with XZFile(FakeFile(fin)) as xzfile:
+            with pytest.raises(OSError) as exc_info:
+                xzfile.fileno()
+            assert str(exc_info.value) == "underlying file object has no fileno"

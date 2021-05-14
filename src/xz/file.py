@@ -51,6 +51,12 @@ class XZFile(IOCombiner):
         else:
             raise ValueError(f"invalid mode: {mode}")
 
+    def fileno(self):
+        try:
+            return self.fileobj.fileno()
+        except AttributeError as ex:
+            raise OSError("underlying file object has no fileno") from ex
+
     def close(self):
         try:
             super().close()

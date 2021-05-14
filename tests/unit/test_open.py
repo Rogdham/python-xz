@@ -40,6 +40,22 @@ def test_open_rt():
         assert xz_file.read() == "♥\n"
 
 
+def test_open_rt_file(tmp_path):
+    file_path = tmp_path / "file.xz"
+    file_path.write_bytes(STREAM_BYTES)
+
+    with file_path.open("rb") as fin:
+        with xz_open(fin, "rt") as xz_file:
+            assert xz_file.stream_boundaries == [0]
+            assert xz_file.block_boundaries == [0, 10]
+            assert xz_file.fileno() == fin.fileno()
+
+            assert xz_file.read() == "♥ utf8 ♥\n"
+
+            assert xz_file.seek(9) == 9
+            assert xz_file.read() == "♥\n"
+
+
 @pytest.mark.parametrize("mode", ("rtb", "rbt"))
 def test_open_mode_invalid(mode):
     fileobj = BytesIO(STREAM_BYTES)
