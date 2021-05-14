@@ -1,4 +1,4 @@
-<div align="center" size="15px">
+<div align="center">
 
 # python-xz
 
@@ -8,7 +8,7 @@ Pure Python implementation of the XZ file format with random access support
 
 ---
 
-[:book: Documentation](https://github.com/rogdham/python-xz/#usage)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[:page_with_curl: Changelog](./CHANGELOG.md)
+[📖 Documentation](https://github.com/rogdham/python-xz/#usage)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[📃 Changelog](./CHANGELOG.md)
 
 </div>
 
@@ -18,16 +18,36 @@ A XZ file can be composed of several streams and blocks. This allows for random 
 when reading, but this is not supported by Python's builtin `lzma` module, which would
 read all previous blocks for nothing.
 
-|                          |           [lzma]            |          [lzmaffi]          |       python-xz        |
-| -----------------------: | :-------------------------: | :-------------------------: | :--------------------: |
-|              Module type |           builtin           |     cffi (C extension)      |         native         |
-| **Random access (read)** | :heavy_multiplication_x: no |   :heavy_check_mark: yes    | :heavy_check_mark: yes |
-|   Several streams (read) |   :heavy_check_mark: yes    |   :heavy_check_mark: yes    | :heavy_check_mark: yes |
-|  Several streams (write) | :heavy_multiplication_x: no | :heavy_multiplication_x: no |  :hourglass: planned   |
-|    Several blocks (read) |   :heavy_check_mark: yes    |   :heavy_check_mark: yes    | :heavy_check_mark: yes |
-|   Several blocks (write) | :heavy_multiplication_x: no | :heavy_multiplication_x: no |  :hourglass: planned   |
-|    Stream padding (read) | :heavy_multiplication_x: no |   :heavy_check_mark: yes    | :heavy_check_mark: yes |
-|   Stream padding (write) | :heavy_multiplication_x: no | :heavy_multiplication_x: no |  :hourglass: planned   |
+<div align="center">
+
+|                 |      [lzma]       |      [lzmaffi]       |      python-xz       |
+| :-------------: | :---------------: | :------------------: | :------------------: |
+|   module type   |      builtin      |  cffi (C extension)  |     pure Python      |
+|   📄 **read**   |                   |                      |                      |
+|  random access  | ❌ no<sup>1</sup> |  ✔️ yes<sup>2</sup>  |  ✔️ yes<sup>2</sup>  |
+| several blocks  |      ✔️ yes       | ✔️✔️ yes<sup>3</sup> | ✔️✔️ yes<sup>3</sup> |
+| several streams |      ✔️ yes       |        ✔️ yes        | ✔️✔️ yes<sup>4</sup> |
+| stream padding  |       ❌ no       |        ✔️ yes        |        ✔️ yes        |
+|  📝 **write**   |                   |                      |                      |
+|    `w` mode     |      ✔️ yes       |        ✔️ yes        |      ⏳ planned      |
+|    `x` mode     |      ✔️ yes       |        ❌ no         |      ⏳ planned      |
+|    `a` mode     |   ✔️ new stream   |    ✔️ new stream     |      ⏳ planned      |
+|   `r+w` mode    |       ❌ no       |        ❌ no         |      ⏳ planned      |
+| several blocks  |       ❌ no       |        ❌ no         |      ⏳ planned      |
+| several streams | ❌ no<sup>5</sup> |  ❌ no<sup>5</sup>   |      ⏳ planned      |
+| stream padding  | ❌ no<sup>6</sup> |        ✔️ yes        |      ⏳ planned      |
+
+</div>
+<sub>
+
+1. Reading from a position will read the file from the very beginning
+2. Reading from a position will read the file from the beginning of the block
+3. Block positions available with the `block_boundaries` attribute
+4. Stream positions available with the `stream_boundaries` attribute
+5. Possible by manually closing and re-opening in append mode
+6. Related [issue](https://bugs.python.org/issue44134)
+
+</sub>
 
 [lzma]: https://docs.python.org/3/library/lzma.html
 [lzmaffi]: https://github.com/r3m0t/backports.lzma
