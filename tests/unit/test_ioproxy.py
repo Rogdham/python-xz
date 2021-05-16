@@ -46,3 +46,12 @@ def test_io_proxy_read():
     original.seek(1)
     assert proxy.read() == b"efghij"
     assert original.tell() == 14
+
+
+def test_io_proxy_fileno(tmp_path):
+    file_path = tmp_path / "file"
+    file_path.write_bytes(b"abcd")
+
+    with file_path.open("rb") as fin:
+        obj = IOProxy(fin, 1, 3)
+        assert obj.fileno() == fin.fileno()

@@ -1,4 +1,4 @@
-from io import BytesIO
+from io import BytesIO, UnsupportedOperation
 import os
 
 import pytest
@@ -192,6 +192,5 @@ def test_fileno_error(tmp_path):
 
     with file_path.open("rb") as fin:
         with XZFile(FakeFile(fin)) as xzfile:
-            with pytest.raises(OSError) as exc_info:
+            with pytest.raises(UnsupportedOperation):
                 xzfile.fileno()
-            assert str(exc_info.value) == "underlying file object has no fileno"

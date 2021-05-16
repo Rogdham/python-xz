@@ -1,4 +1,4 @@
-from io import SEEK_CUR, SEEK_END, SEEK_SET, IOBase
+from io import SEEK_CUR, SEEK_END, SEEK_SET, IOBase, UnsupportedOperation
 
 from xz.utils import FloorDict
 
@@ -11,6 +11,12 @@ class IOAbstract(IOBase):
 
     def __repr__(self):
         return f"<{self.__class__.__name__} object at {hex(hash(self))}>"
+
+    def fileno(self):
+        try:
+            return self.fileobj.fileno()
+        except AttributeError:
+            raise UnsupportedOperation("fileno")  # pylint: disable=raise-missing-from
 
     def seek(self, pos, whence=SEEK_SET):
         """Change stream position.

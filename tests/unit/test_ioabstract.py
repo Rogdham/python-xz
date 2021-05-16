@@ -1,16 +1,18 @@
+from io import UnsupportedOperation
+
 import pytest
 
 from xz.io import IOAbstract
 
 
-def test_abstract_attributes():
+def test_io_abstract_attributes():
     obj = IOAbstract(10)
     assert obj.readable() is True
     assert obj.seekable() is True
     assert obj.writable() is False
 
 
-def test_abstract_tell_seek():
+def test_io_abstract_tell_seek():
     obj = IOAbstract(10)
     assert obj.tell() == 0
 
@@ -66,7 +68,7 @@ def test_abstract_tell_seek():
     assert str(exc_info.value) == "unsupported whence value"
 
 
-def test_abstract_tell_read():
+def test_io_abstract_tell_read():
     class Impl(IOAbstract):
         def __init__(self):
             super().__init__(10)
@@ -92,7 +94,7 @@ def test_abstract_tell_read():
     assert obj.read(2) == b""
 
 
-def test_abstract_tell_read_empty():
+def test_io_abstract_tell_read_empty():
     class Impl(IOAbstract):
         def __init__(self):
             super().__init__(10)
@@ -107,3 +109,25 @@ def test_abstract_tell_read_empty():
     obj = Impl()
 
     assert obj.read() == b"aaaaaaaaaa"
+
+
+def test_io_abstract_fileno(tmp_path):
+    file_path = tmp_path / "file"
+    file_path.write_bytes(b"abcd")
+
+    class Impl(IOAbstract):
+        # pylint: disable=abstract-method
+
+        def __init__(self, fileobj):
+            super().__init__(10)
+            self.fileobj = fileobj
+
+    with file_path.open("rb") as fin:
+        obj = Impl(fin)
+        assert obj.fileno() == fin.fileno()
+
+
+def test_io_abstract_fileno_ko():
+    obj = IOAbstract(10)
+    with pytest.raises(UnsupportedOperation):
+        obj.fileno()
