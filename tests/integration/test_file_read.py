@@ -35,3 +35,14 @@ def test_read_all(integration_case, data_pattern):
         assert xz_file.stream_boundaries == stream_boundaries
         assert xz_file.block_boundaries == block_boundaries
         assert xz_file.read() == data_pattern
+
+
+def test_read_reversed(integration_case, data_pattern):
+    xz_path, _ = integration_case
+    with XZFile(xz_path) as xz_file:
+        # we are testing the worst possible case (lots of negative seeking)
+        # limit the time to test by reading in chunks instead of 1 byte at a time
+        read_size = 37
+        for pos in reversed(range(0, len(data_pattern), read_size)):
+            xz_file.seek(pos)
+            assert xz_file.read(read_size) == data_pattern[pos : pos + read_size]
