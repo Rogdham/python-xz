@@ -1,0 +1,18 @@
+{
+  "generate": [
+    {
+      "cmd": "xz --x86=start=42 --delta=dist=3 --powerpc --lzma2",
+      "length": 20280
+    }
+  ],
+  "streams": [
+    {
+      "check": 4,
+      "blocks": [
+        {
+          "length": 20280
+        }
+      ]
+    }
+  ]
+}
