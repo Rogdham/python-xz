@@ -1,11 +1,11 @@
-from io import SEEK_SET, BytesIO
+from io import SEEK_SET
 from unittest.mock import Mock, call
 
 import pytest
 
 from xz.block import XZBlock
 from xz.common import XZError
-from xz.io import IOProxy
+from xz.io import IOStatic
 
 BLOCK_BYTES = bytes.fromhex(
     "0200210116000000742fe5a3e0006300415d00209842100431d01ab285328305"
@@ -16,11 +16,15 @@ BLOCK_BYTES = bytes.fromhex(
 
 @pytest.fixture
 def fileobj():
-    proxy = IOProxy(BytesIO(BLOCK_BYTES), 0, 92)
-    mock = Mock(wraps=proxy)
-    mock.__class__ = IOProxy
-    mock._length = proxy._length  # pylint: disable=protected-access
+    mock = Mock(wraps=IOStatic(BLOCK_BYTES))
+    mock.__class__ = IOStatic
+    mock._length = len(BLOCK_BYTES)  # pylint: disable=protected-access
     yield mock
+
+
+@pytest.fixture(autouse=True)
+def patch_buffer_size(monkeypatch):
+    monkeypatch.setattr(XZBlock, "compressed_read_size", 17)
 
 
 # pylint: disable=redefined-outer-name
@@ -28,7 +32,6 @@ def fileobj():
 
 def test_read_all(fileobj, data_pattern_locate):
     block = XZBlock(fileobj, 1, 89, 100)
-    block.compressed_read_size = 17
     assert block.tell() == 0
     assert data_pattern_locate(block.read()) == (0, 100)
 
@@ -55,7 +58,6 @@ def test_read_all(fileobj, data_pattern_locate):
 
 def test_seek_forward(fileobj, data_pattern_locate):
     block = XZBlock(fileobj, 1, 89, 100)
-    block.compressed_read_size = 17
     assert block.tell() == 0
 
     block.seek(0)
@@ -105,7 +107,6 @@ def test_seek_forward(fileobj, data_pattern_locate):
 
 def test_seek_backward(fileobj, data_pattern_locate):
     block = XZBlock(fileobj, 1, 89, 100)
-    block.compressed_read_size = 17
     assert block.tell() == 0
 
     block.seek(60)
@@ -163,7 +164,6 @@ def test_seek_backward(fileobj, data_pattern_locate):
 
 def test_wrong_uncompressed_size_too_small(fileobj, data_pattern_locate):
     block = XZBlock(fileobj, 1, 89, 99)
-    block.compressed_read_size = 17
 
     # read all but last byte
     assert data_pattern_locate(block.read(98)) == (0, 98)
@@ -176,7 +176,6 @@ def test_wrong_uncompressed_size_too_small(fileobj, data_pattern_locate):
 
 def test_wrong_uncompressed_size_too_big(fileobj, data_pattern_locate):
     block = XZBlock(fileobj, 1, 89, 101)
-    block.compressed_read_size = 17
 
     # read all but last byte
     assert data_pattern_locate(block.read(100)) == (0, 100)
@@ -189,9 +188,8 @@ def test_wrong_uncompressed_size_too_big(fileobj, data_pattern_locate):
 
 
 def test_wrong_block_padding(data_pattern_locate):
-    fileobj = IOProxy(BytesIO(BLOCK_BYTES[:-5] + b"\xff" + BLOCK_BYTES[-4:]), 0, 92)
+    fileobj = IOStatic(BLOCK_BYTES[:-5] + b"\xff" + BLOCK_BYTES[-4:])
     block = XZBlock(fileobj, 1, 89, 100)
-    block.compressed_read_size = 17
 
     # read all but last byte
     assert data_pattern_locate(block.read(99)) == (0, 99)
@@ -203,10 +201,9 @@ def test_wrong_block_padding(data_pattern_locate):
 
 
 def test_wrong_check(data_pattern_locate):
-    fileobj = IOProxy(BytesIO(BLOCK_BYTES[:-4] + b"\xff" * 4), 0, 92)
+    fileobj = IOStatic(BLOCK_BYTES[:-4] + b"\xff" * 4)
 
     block = XZBlock(fileobj, 1, 89, 100)
-    block.compressed_read_size = 17
 
     # read all but last byte
     assert data_pattern_locate(block.read(99)) == (0, 99)
@@ -219,18 +216,13 @@ def test_wrong_check(data_pattern_locate):
 
 def test_truncated_data(fileobj):
     block = XZBlock(fileobj, 1, 89, 100)
-    block.compressed_read_size = 17
-    block.compressed_fileobj = IOProxy(
-        BytesIO(
-            bytes.fromhex(
-                # header
-                "fd377a585a0000016922de36"
-                # one block (truncated)
-                "0200210116000000742fe5a301000941"
-            )
-        ),
-        0,
-        28,
+    block.compressed_fileobj = IOStatic(
+        bytes.fromhex(
+            # header
+            "fd377a585a0000016922de36"
+            # one block (truncated)
+            "0200210116000000742fe5a301000941"
+        )
     )
 
     with pytest.raises(XZError) as exc_info:
@@ -239,26 +231,21 @@ def test_truncated_data(fileobj):
 
 
 def test_decompressor_eof(data_pattern_locate):
-    fileobj = IOProxy(
-        BytesIO(
-            bytes.fromhex(
-                # one block
-                "0200210116000000742fe5a301000941"
-                "6130416131416132410000004e4aa467"
-                # index
-                "00011e0aea6312149042990d0100"
-                # stream footer
-                "00000001595a"
-            )
-        ),
-        0,
-        52,
+    fileobj = IOStatic(
+        bytes.fromhex(
+            # one block
+            "0200210116000000742fe5a301000941"
+            "6130416131416132410000004e4aa467"
+            # index
+            "00011e0aea6312149042990d0100"
+            # stream footer
+            "00000001595a"
+        )
     )
 
     # real uncompressed size is 10, not 11
     # it is changed to trigger the error case we are testing here
     block = XZBlock(fileobj, 1, 30, 11)
-    block.compressed_read_size = 17
 
     # read all but last byte
     assert data_pattern_locate(block.read(10)) == (0, 10)
