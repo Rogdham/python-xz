@@ -39,7 +39,7 @@ class IOAbstract(IOBase):
             pos += self._length
         else:
             raise ValueError("unsupported whence value")
-        if 0 <= pos <= self._length:
+        if pos >= 0:
             self._pos = pos
             return self._pos
         raise ValueError("invalid seek position")
@@ -64,13 +64,13 @@ class IOAbstract(IOBase):
         """Read at most size bytes, returned as a bytes object.
 
         If the size argument is negative, read until EOF is reached.
-        Return an empty bytes object at EOF.
+        Return an empty bytes object at or after EOF.
         """
         if size < 0:
             size = self._length
         size = min(size, self._length - self._pos)
         parts = []
-        while size:
+        while size > 0:
             data = self._read(size)  # do not stop if data is empty
             parts.append(data)
             size -= len(data)

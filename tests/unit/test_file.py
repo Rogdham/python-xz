@@ -94,6 +94,10 @@ def test_read(filetype, tmp_path, data_pattern_locate):
         xzfile.seek(0)
         assert data_pattern_locate(xzfile.read()) == (0, 400)
 
+        # read from pas end
+        assert xzfile.seek(500) == 500
+        assert xzfile.read() == b""
+
 
 @pytest.mark.parametrize("mode", ("r", "rb"))
 def test_read_with_mode(mode, data_pattern_locate):

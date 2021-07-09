@@ -26,17 +26,22 @@ def test_io_abstract_tell_seek():
     with pytest.raises(ValueError) as exc_info:
         obj.seek(-1)
     assert str(exc_info.value) == "invalid seek position"
-    with pytest.raises(ValueError) as exc_info:
-        obj.seek(11)
-    assert str(exc_info.value) == "invalid seek position"
+    assert obj.seek(42) == 42
+    assert obj.tell() == 42
 
     # absolute (with whence)
     assert obj.seek(5, 0) == 5
     assert obj.tell() == 5
     assert obj.seek(10, 0) == 10
     assert obj.tell() == 10
+    with pytest.raises(ValueError) as exc_info:
+        obj.seek(-1, 0)
+    assert str(exc_info.value) == "invalid seek position"
+    assert obj.seek(42, 0) == 42
+    assert obj.tell() == 42
 
     # relative
+    assert obj.seek(10) == 10
     assert obj.seek(-7, 1) == 3
     assert obj.tell() == 3
     assert obj.seek(2, 1) == 5
@@ -44,9 +49,9 @@ def test_io_abstract_tell_seek():
     with pytest.raises(ValueError) as exc_info:
         obj.seek(-6, 1)
     assert str(exc_info.value) == "invalid seek position"
-    with pytest.raises(ValueError) as exc_info:
-        obj.seek(6, 1)
-    assert str(exc_info.value) == "invalid seek position"
+    assert obj.tell() == 5
+    assert obj.seek(37, 1) == 42
+    assert obj.tell() == 42
 
     # from end
     assert obj.seek(0, 2) == 10
@@ -55,9 +60,8 @@ def test_io_abstract_tell_seek():
     assert obj.tell() == 6
     assert obj.seek(-10, 2) == 0
     assert obj.tell() == 0
-    with pytest.raises(ValueError) as exc_info:
-        obj.seek(1, 2)
-    assert str(exc_info.value) == "invalid seek position"
+    assert obj.seek(32, 2) == 42
+    assert obj.tell() == 42
     with pytest.raises(ValueError) as exc_info:
         obj.seek(-11, 2)
     assert str(exc_info.value) == "invalid seek position"
@@ -91,6 +95,10 @@ def test_io_abstract_tell_read():
     assert obj.read(2) == b"xy"
     assert obj.read(2) == b"x"
     assert obj.read(2) == b""
+    assert obj.read(2) == b""
+
+    # read from after EOF
+    obj.seek(11)
     assert obj.read(2) == b""
 
 
