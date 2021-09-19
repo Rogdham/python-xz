@@ -37,7 +37,7 @@ class XZFile(IOCombiner):
         super().__init__()
 
         if isinstance(filename, (str, bytes, os.PathLike)):
-            # pylint: disable=consider-using-with
+            # pylint: disable=consider-using-with, unspecified-encoding
             self.fileobj = open(filename, self.mode + "b")
             self.close_fileobj = True
         elif hasattr(filename, "read"):
