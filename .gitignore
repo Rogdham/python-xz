@@ -10,3 +10,5 @@ __pycache__
 /coverage
 /.pytest_cache
 /.tox
+
+/src/xz/_version.py
