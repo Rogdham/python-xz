@@ -14,6 +14,10 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Allow to `seek` past the end of the fileobj
 - Calling `len` on a fileobj gives its length, and `bool` tells if it is empty
 
+### :house: Internal
+
+- Test that no warnings are generated
+
 ## [0.1.2] - 2021-09-19
 
 [0.1.2]: https://github.com/rogdham/python-xz/releases/tag/v0.1.2
