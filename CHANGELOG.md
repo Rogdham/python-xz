@@ -13,6 +13,8 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 - Allow to `seek` past the end of the fileobj
 - Calling `len` on a fileobj gives its length, and `bool` tells if it is empty
+- Export useful constants and functions from `lzma` for easy access: checks, filters,
+  etc.
 
 ### :house: Internal
 
