@@ -17,6 +17,11 @@ STREAM_BYTES = bytes.fromhex(
     "00025964555a0000041276283e300d8b020000000001595a"
 )
 
+# a stream with no blocks
+STREAM_BYTES_EMPTY = bytes.fromhex(
+    "fd377a585a0000016922de36000000001cdf44219042990d010000000001595a"
+)
+
 
 def test_parse(data_pattern_locate):
     fileobj = Mock(wraps=BytesIO(b"\xff" * 1000 + STREAM_BYTES + b"\xee" * 1000))
@@ -71,13 +76,34 @@ def test_parse(data_pattern_locate):
     assert data_pattern_locate(stream.read()) == (170, 20)
 
 
-def test_invalid_stream_flags_missmatch():
+def test_parse_invalid_stream_flags_missmatch():
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000004e6d6b446000000001cdf44219042990d010000000001595a"
         )
     )
-    fileobj.seek(0, SEEK_END)  # move at the end of the stream
+    fileobj.seek(0, SEEK_END)
     with pytest.raises(XZError) as exc_info:
         XZStream.parse(fileobj)
     assert str(exc_info.value) == "stream: inconsistent check value"
+
+
+def test_parse_empty_block():
+    fileobj = BytesIO(
+        bytes.fromhex(
+            "fd377a585a0000016922de360200210116000000742fe5a30000000000000000"
+            "000111003b965f739042990d010000000001595a"
+        )
+    )
+    fileobj.seek(0, SEEK_END)
+    with pytest.raises(XZError) as exc_info:
+        XZStream.parse(fileobj)
+    assert str(exc_info.value) == "index record uncompressed size"
+
+
+def test_parse_empty_stream():
+    fileobj = BytesIO(STREAM_BYTES_EMPTY)
+    fileobj.seek(0, SEEK_END)
+    stream = XZStream.parse(fileobj)
+    assert stream._length == 0  # pylint: disable=protected-access
+    assert stream.block_boundaries == []
