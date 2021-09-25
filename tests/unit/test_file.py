@@ -48,7 +48,7 @@ def test_read(filetype, tmp_path, data_pattern_locate):
             filename = os.fspath(filename)
 
     with XZFile(filename) as xzfile:
-        assert xzfile._length == 400  # pylint: disable=protected-access
+        assert len(xzfile) == 400
         assert xzfile.stream_boundaries == [0, 190]
         assert xzfile.block_boundaries == [0, 100, 190, 250, 310, 370]
 
@@ -104,7 +104,7 @@ def test_read_with_mode(mode, data_pattern_locate):
     filename = BytesIO(FILE_BYTES)
 
     with XZFile(filename, mode=mode) as xzfile:
-        assert xzfile._length == 400  # pylint: disable=protected-access
+        assert len(xzfile) == 400
         assert data_pattern_locate(xzfile.read(20)) == (0, 20)
 
 

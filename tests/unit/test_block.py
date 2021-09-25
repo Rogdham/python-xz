@@ -18,7 +18,7 @@ BLOCK_BYTES = bytes.fromhex(
 def fileobj():
     mock = Mock(wraps=IOStatic(BLOCK_BYTES))
     mock.__class__ = IOStatic
-    mock._length = len(BLOCK_BYTES)  # pylint: disable=protected-access
+    mock.__len__ = lambda _: len(BLOCK_BYTES)
     yield mock
 
 

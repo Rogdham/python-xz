@@ -12,6 +12,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 ### :rocket: Added
 
 - Allow to `seek` past the end of the fileobj
+- Calling `len` on a fileobj gives its length, and `bool` tells if it is empty
 
 ## [0.1.2] - 2021-09-19
 

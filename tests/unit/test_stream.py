@@ -31,7 +31,7 @@ def test_parse(data_pattern_locate):
     # parse stream
     stream = XZStream.parse(fileobj)
     assert stream.check == 1
-    assert stream._length == 190  # pylint: disable=protected-access
+    assert len(stream) == 190
     assert stream.block_boundaries == [0, 100]
 
     # make sure we don't read the blocks
@@ -105,5 +105,5 @@ def test_parse_empty_stream():
     fileobj = BytesIO(STREAM_BYTES_EMPTY)
     fileobj.seek(0, SEEK_END)
     stream = XZStream.parse(fileobj)
-    assert stream._length == 0  # pylint: disable=protected-access
+    assert len(stream) == 0
     assert stream.block_boundaries == []

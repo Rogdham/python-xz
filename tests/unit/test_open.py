@@ -17,7 +17,7 @@ def test_open_rb():
     fileobj = BytesIO(STREAM_BYTES)
 
     with xz_open(fileobj, "rb") as xz_file:
-        assert xz_file._length == 13  # pylint: disable=protected-access
+        assert len(xz_file) == 13
         assert xz_file.stream_boundaries == [0]
         assert xz_file.block_boundaries == [0, 10]
 

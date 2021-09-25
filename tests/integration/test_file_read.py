@@ -26,12 +26,9 @@ def test_read_all(integration_case, data_pattern):
                 block_boundaries.append(pos)
                 block_pos, block = block_item
                 assert block_pos == pos - stream_pos
-                assert (  # pylint: disable=protected-access
-                    block._length == metadata_block["length"]
-                )
+                assert len(block) == metadata_block["length"]
                 pos += metadata_block["length"]
-            stream_length = pos - stream_pos
-            assert stream._length == stream_length  # pylint: disable=protected-access
+            assert len(stream) == pos - stream_pos
         assert xz_file.stream_boundaries == stream_boundaries
         assert xz_file.block_boundaries == block_boundaries
         assert xz_file.read() == data_pattern

@@ -8,8 +8,8 @@ from xz.io import IOAbstract, IOCombiner, IOProxy
 
 def generate_mock(length):
     mock = Mock()
-    mock._length = length  # pylint: disable=protected-access
     mock.__class__ = IOAbstract
+    mock.__len__ = lambda _: length
     return mock
 
 
@@ -30,19 +30,17 @@ def test_io_combiner_seek():
 
 
 def test_io_combiner_append():
-    # pylint: disable=protected-access
     combiner = IOCombiner(generate_mock(13), generate_mock(37))
-    assert combiner._length == 50
+    assert len(combiner) == 50
     combiner._append(IOProxy(BytesIO(b"abcdefghij"), 0, 10))
-    assert combiner._length == 60
+    assert len(combiner) == 60
     combiner.seek(54)
     assert combiner.read(4) == b"efgh"
 
 
 def test_io_combiner_append_invalid():
-    # pylint: disable=protected-access
     combiner = IOCombiner(generate_mock(13), generate_mock(37))
-    assert combiner._length == 50
+    assert len(combiner) == 50
     with pytest.raises(TypeError):
         combiner._append(BytesIO(b"abcdefghij"))
 

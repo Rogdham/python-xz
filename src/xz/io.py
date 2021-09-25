@@ -12,6 +12,9 @@ class IOAbstract(IOBase):
     def __repr__(self):
         return f"<{self.__class__.__name__} object at {hex(hash(self))}>"
 
+    def __len__(self):
+        return self._length
+
     def fileno(self):
         try:
             return self.fileobj.fileno()
@@ -125,4 +128,4 @@ class IOCombiner(IOAbstract):
         if not isinstance(fileobj, IOAbstract):
             raise TypeError
         self._fileobjs[self._length] = fileobj  # override empty streams
-        self._length += fileobj._length  # pylint: disable=protected-access
+        self._length += len(fileobj)
