@@ -1,9 +1,11 @@
 from io import SEEK_CUR, SEEK_END
 import os
+import warnings
 
-from xz.common import XZError
-from xz.io import IOCombiner
+from xz.common import DEFAULT_CHECK, XZError
+from xz.io import IOCombiner, IOProxy
 from xz.stream import XZStream
+from xz.utils import parse_mode, proxy_property
 
 
 class XZFile(IOCombiner):
@@ -17,46 +19,97 @@ class XZFile(IOCombiner):
     Use xz.open if you want a *text* file interface.
     """
 
-    def __init__(self, filename=None, mode="r"):
+    def __init__(self, filename=None, mode="r", *, check=-1, preset=None, filters=None):
         """Open an XZ file in binary mode.
 
-        filename can be either an actual file name (given as a str,
-        bytes, or PathLike object), in which case the named file is
-        opened, or it can be an existing file object to read from or
-        write to.
+        The filename argument can be either an actual file name
+        (given as a str, bytes, or PathLike object),
+        in which case the named file is opened,
+        or it can be an existing file object to read from or write to.
 
-        mode can be "r" for reading (default).
-        It is equivalent to "rb".
+        The mode argument can be one of the following:
+         - "r" for reading (default)
+         - "w" for writing, truncating the file
+         - "r+" for reading and writing
+         - "w+" for reading and writing, truncating the file
+         - "x" and "x+" are like "w" and "w+", except that an
+           FileExistsError is raised if the file already exists
+
+        The following arguments are used during writing:
+         - check: when creating a new stream
+         - preset: when creating a new block
+         - filters: when creating a new block
+
+        For more information about the check/preset/filters arguments,
+        refer to the documentation of the lzma module.
         """
-
-        self.close_fileobj = False
-        self.mode = mode
-        if self.mode.endswith("b"):
-            self.mode = self.mode[:-1]
+        self._close_fileobj = False
+        self._close_check_empty = False
 
         super().__init__()
 
+        self.mode, self._readable, self._writable = parse_mode(mode)
+
+        # get fileobj
         if isinstance(filename, (str, bytes, os.PathLike)):
             # pylint: disable=consider-using-with, unspecified-encoding
             self.fileobj = open(filename, self.mode + "b")
-            self.close_fileobj = True
-        elif hasattr(filename, "read"):
+            self._close_fileobj = True
+        elif hasattr(filename, "read"):  # weak check but better than nothing
             self.fileobj = filename
         else:
             raise TypeError("filename must be a str, bytes, file or PathLike object")
 
-        # we only support read for now
-        if self.mode in ("r", "rb"):
+        # check fileobj
+        if not self.fileobj.seekable():
+            raise ValueError("filename is not seekable")
+        if self._readable and not self.fileobj.readable():
+            raise ValueError("filename is not readable")
+        if self._writable and not self.fileobj.writable():
+            raise ValueError("filename is not writable")
+
+        # init
+        if self.mode[0] in "wx":
+            self.fileobj.truncate(0)
+        if self._readable:
             self._init_parse()
-        else:
-            raise ValueError(f"invalid mode: {mode}")
+        if self.mode[0] == "r" and not self._fileobjs:
+            raise XZError("file: no streams")
+
+        self.check = check if check != -1 else DEFAULT_CHECK
+        self.preset = preset
+        self.filters = filters
+
+        self._close_check_empty = self.mode[0] != "r"
+
+    @property
+    def _last_stream(self):
+        try:
+            return self._fileobjs.last_item
+        except KeyError:
+            return None
+
+    preset = proxy_property("preset", "_last_stream")
+    filters = proxy_property("filters", "_last_stream")
+
+    def readable(self):
+        return self._readable
+
+    def writable(self):
+        return self._writable
 
     def close(self):
         try:
             super().close()
+            if self._close_check_empty and not self:
+                warnings.warn(
+                    "Empty XZFile: nothing was written, "
+                    "so output is empty (and not a valid xz file).",
+                    RuntimeWarning,
+                )
         finally:
-            if self.close_fileobj:
-                self.fileobj.close()
+            if self._close_fileobj:
+                self.fileobj.close()  # self.fileobj exists at this point
 
     @property
     def stream_boundaries(self):
@@ -84,8 +137,34 @@ class XZFile(IOCombiner):
             else:
                 self.fileobj.seek(-4, SEEK_CUR)  # stream padding
 
-        if not streams:
-            raise XZError("file: no streams")
-
         while streams:
             self._append(streams.pop())
+
+    def _create_fileobj(self):
+        stream_pos = sum(len(stream.fileobj) for stream in self._fileobjs.values())
+        return XZStream(
+            IOProxy(
+                self.fileobj,
+                stream_pos,
+                stream_pos,
+            ),
+            self.check,
+            self.preset,
+            self.filters,
+        )
+
+    def change_stream(self):
+        """
+        Create a new stream.
+
+        If the current stream is empty, replace it instead."""
+        if self._fileobjs:
+            self._change_fileobj()
+
+    def change_block(self):
+        """
+        Create a new block.
+
+        If the current block is empty, replace it instead."""
+        if self._fileobjs:
+            self._last_stream.change_block()

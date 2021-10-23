@@ -1,5 +1,6 @@
-from io import BytesIO, UnsupportedOperation
+from io import SEEK_END, BytesIO, UnsupportedOperation
 import os
+from unittest.mock import Mock
 
 import pytest
 
@@ -35,6 +36,56 @@ FILE_BYTES = bytes.fromhex(
     "0000000000000000000000000000000000000000000000000000000000000000"
     "000000000000000000000000"
 )
+
+
+SUPPORTED_MODES = (
+    "r",
+    "rb",
+    "r+",
+    "rb+",
+    "w",
+    "wb",
+    "w+",
+    "wb+",
+    "x",
+    "xb",
+    "x+",
+    "xb+",
+)
+
+EMPTY_XZ_FILE_WARNING_FILTER = "ignore:Empty XZFile*:RuntimeWarning:xz.file"
+
+
+#
+# init
+#
+
+
+@pytest.mark.filterwarnings(EMPTY_XZ_FILE_WARNING_FILTER)
+@pytest.mark.parametrize("init_has_ability", (False, True))
+@pytest.mark.parametrize("ability", ("seekable", "readable", "writable"))
+@pytest.mark.parametrize("mode", SUPPORTED_MODES)
+def test_required_abilities(mode, ability, init_has_ability):
+    fileobj = Mock(wraps=BytesIO(FILE_BYTES))
+    getattr(fileobj, ability).return_value = init_has_ability
+
+    expected_ability = (
+        ability == "seekable"
+        or "+" in mode
+        or ((ability == "readable") == ("r" in mode))
+    )
+
+    if not init_has_ability and expected_ability:
+        with pytest.raises(ValueError):
+            XZFile(fileobj, mode=mode)
+    else:
+        with XZFile(fileobj, mode=mode) as xzfile:
+            assert getattr(xzfile, ability)() == expected_ability
+
+
+#
+# read
+#
 
 
 @pytest.mark.parametrize("filetype", ("fileobj", "filename", "path"))
@@ -99,13 +150,30 @@ def test_read(filetype, tmp_path, data_pattern_locate):
         assert xzfile.read() == b""
 
 
-@pytest.mark.parametrize("mode", ("r", "rb"))
-def test_read_with_mode(mode, data_pattern_locate):
-    filename = BytesIO(FILE_BYTES)
+@pytest.mark.filterwarnings(EMPTY_XZ_FILE_WARNING_FILTER)
+@pytest.mark.parametrize("from_file", (False, True))
+@pytest.mark.parametrize("mode", SUPPORTED_MODES)
+def test_read_with_mode(mode, from_file, tmp_path, data_pattern_locate):
+    if from_file:
+        filename = tmp_path / "archive.xz"
+        filename.write_bytes(FILE_BYTES)
+    else:
+        filename = BytesIO(FILE_BYTES)
 
-    with XZFile(filename, mode=mode) as xzfile:
-        assert len(xzfile) == 400
-        assert data_pattern_locate(xzfile.read(20)) == (0, 20)
+    if from_file and "x" in mode:
+        with pytest.raises(FileExistsError):
+            XZFile(filename, mode=mode)
+
+    else:
+        with XZFile(filename, mode=mode) as xzfile:
+            if "r" in mode:
+                assert len(xzfile) == 400
+                assert data_pattern_locate(xzfile.read(20)) == (0, 20)
+            elif "w" in mode or "x" in mode:
+                assert len(xzfile) == 0
+            else:
+                with pytest.raises(UnsupportedOperation):
+                    xzfile.read(20)
 
 
 def test_read_invalid_stream_padding():
@@ -133,31 +201,453 @@ def test_read_no_stream(data):
     assert str(exc_info.value) == "file: no streams"
 
 
+#
+# write
+#
+
+
+def test_write():
+    filename = BytesIO()
+
+    with XZFile(filename, "w") as xzfile:
+        assert len(xzfile) == 0
+        assert xzfile.stream_boundaries == []
+        assert xzfile.block_boundaries == []
+
+        xzfile.change_stream()  # no initial stream change
+        assert len(xzfile) == 0
+        assert xzfile.stream_boundaries == []
+        assert xzfile.block_boundaries == []
+
+        xzfile.change_block()  # no initial block change
+        assert len(xzfile) == 0
+        assert xzfile.stream_boundaries == []
+        assert xzfile.block_boundaries == []
+
+        xzfile.write(b"abc")
+        assert len(xzfile) == 3
+        assert xzfile.stream_boundaries == [0]
+        assert xzfile.block_boundaries == [0]
+
+        xzfile.seek(7)
+        xzfile.write(b"def")
+        assert len(xzfile) == 10
+        assert xzfile.stream_boundaries == [0]
+        assert xzfile.block_boundaries == [0]
+
+        xzfile.change_block()
+        assert len(xzfile) == 10
+        assert xzfile.stream_boundaries == [0]
+        assert xzfile.block_boundaries == [0, 10]
+
+        xzfile.change_block()  # no double block change
+        assert len(xzfile) == 10
+        assert xzfile.stream_boundaries == [0]
+        assert xzfile.block_boundaries == [0, 10]
+
+        xzfile.write(b"ghi")
+        assert len(xzfile) == 13
+        assert xzfile.stream_boundaries == [0]
+        assert xzfile.block_boundaries == [0, 10]
+
+        xzfile.change_stream()
+        assert len(xzfile) == 13
+        assert xzfile.stream_boundaries == [0, 13]
+        assert xzfile.block_boundaries == [0, 10]
+
+        xzfile.change_stream()  # no double stream change
+        assert len(xzfile) == 13
+        assert xzfile.stream_boundaries == [0, 13]
+        assert xzfile.block_boundaries == [0, 10]
+
+        xzfile.write(b"jkl")
+        assert len(xzfile) == 16
+        assert xzfile.stream_boundaries == [0, 13]
+        assert xzfile.block_boundaries == [0, 10, 13]
+
+    assert filename.getvalue() == bytes.fromhex(
+        # stream 1
+        "fd377a585a000004e6d6b4460200210116000000742fe5a30100096162630000"
+        "0000646566000000b8179b68f9f2cff30200210116000000742fe5a301000267"
+        "686900005d4f3084613135140002220a1b0300001b1c3777b1c467fb02000000"
+        "0004595a"
+        # stream 2
+        "fd377a585a000004e6d6b4460200210116000000742fe5a30100026a6b6c0000"
+        "2cf7f76df2f5538800011b030b2fb9101fb6f37d010000000004595a"
+    )
+
+
+@pytest.mark.parametrize(
+    "mode, start_empty",
+    [
+        (mode, start_empty)
+        for mode in SUPPORTED_MODES
+        if not mode[0] == "r"
+        for start_empty in ((True,) if mode[0] == "a" else (False, True))
+    ],
+)
+def test_write_empty(mode, start_empty):
+    filename = BytesIO(b"" if start_empty else FILE_BYTES)
+
+    with pytest.warns(RuntimeWarning):
+        with XZFile(filename, mode=mode):
+            pass
+
+    assert filename.getvalue() == b""
+
+
+@pytest.mark.parametrize("file_exists", (False, True))
+@pytest.mark.parametrize("from_file", (False, True))
+@pytest.mark.parametrize("mode", SUPPORTED_MODES)
+def test_write_with_mode(mode, from_file, file_exists, tmp_path):
+    initial_data = bytes.fromhex(
+        "fd377a585a000004e6d6b446"  # header
+        "0200210116000000742fe5a301000278797a0000f5e0ef978aa11258"  # block
+        "00011b030b2fb910"  # index
+        "1fb6f37d010000000004595a"  # footer
+    )
+
+    if from_file:
+        filename = tmp_path / "archive.xz"
+        if file_exists:
+            filename.write_bytes(initial_data)
+    else:
+        if file_exists:
+            filename = BytesIO(initial_data)
+        else:
+            filename = BytesIO()
+
+    if not file_exists and "r" in mode:
+        if from_file:
+            with pytest.raises(FileNotFoundError):
+                XZFile(filename, mode=mode)
+
+        else:
+            with pytest.raises(XZError) as exc_info:
+                XZFile(filename, mode=mode)
+            assert str(exc_info.value) == "file: no streams"
+
+    elif from_file and file_exists and "x" in mode:
+        with pytest.raises(FileExistsError):
+            XZFile(filename, mode=mode)
+
+    else:
+        expected_success = "r" not in mode or "+" in mode
+
+        with XZFile(filename, mode=mode) as xzfile:
+            assert xzfile.tell() == 0
+            if "r" in mode:
+                xzfile.seek(0, SEEK_END)
+
+            if expected_success:
+                xzfile.write(b"abc")
+            else:
+                with pytest.raises(UnsupportedOperation):
+                    xzfile.write(b"abc")
+
+        if expected_success:
+            if from_file:
+                value = filename.read_bytes()
+            else:
+                value = filename.getvalue()
+            if "r" in mode:
+                expected_value = bytes.fromhex(
+                    "fd377a585a000004e6d6b446"  # header
+                    "0200210116000000742fe5a301000278797a0000f5e0ef978aa11258"  # old block
+                    "0200210116000000742fe5a301000261626300002776271a4a09d82c"  # new block
+                    "00021b031b0300000f285259"  # index
+                    "b1c467fb020000000004595a"  # footer
+                )
+            else:
+                expected_value = bytes.fromhex(
+                    "fd377a585a000004e6d6b446"  # header
+                    "0200210116000000742fe5a301000261626300002776271a4a09d82c"  # new block
+                    "00011b030b2fb910"  # index
+                    "1fb6f37d010000000004595a"  # footer
+                )
+            assert value == expected_value
+
+
+#
+# check / filters / preset changes
+#
+
+
+def test_change_check():
+    fileobj = BytesIO()
+
+    with XZFile(fileobj, "w", check=1) as xzfile:
+        xzfile.write(b"aa")
+        xzfile.change_stream()
+        xzfile.check = 4
+        xzfile.write(b"bb")
+        xzfile.change_stream()
+        xzfile.write(b"cc")
+        xzfile.change_stream()
+        xzfile.write(b"dd")
+
+    assert fileobj.getvalue() == bytes.fromhex(
+        # stream 1
+        "fd377a585a0000016922de36"
+        "0200210116000000742fe5a30100016161000000d7198a07"
+        "00011602d06110d2"
+        "9042990d010000000001595a"
+        # stream 2
+        "fd377a585a0000016922de36"
+        "0200210116000000742fe5a30100016262000000ae1baeb5"
+        "00011602d06110d2"
+        "9042990d010000000001595a"
+        # stream 3 (changed check)
+        "fd377a585a000004e6d6b446"
+        "0200210116000000742fe5a30100016363000000330d82b4bacc99a6"
+        "00011a02dc2ea57e"
+        "1fb6f37d010000000004595a"
+        # stream 4 (changed check)
+        "fd377a585a000004e6d6b446"
+        "0200210116000000742fe5a301000164640000009265d6d903b6a5a6"
+        "00011a02dc2ea57e"
+        "1fb6f37d010000000004595a"
+    )
+
+
+def test_change_check_on_existing():
+    fileobj = BytesIO(
+        bytes.fromhex(
+            # stream 1
+            "fd377a585a0000016922de36"
+            "0200210116000000742fe5a30100016161000000d7198a07"
+            "00011602d06110d2"
+            "9042990d010000000001595a"
+        )
+    )
+
+    with XZFile(fileobj, "r+", check=4) as xzfile:
+        xzfile.seek(0, SEEK_END)
+        xzfile.write(b"bb")
+        xzfile.change_stream()
+        xzfile.write(b"cc")
+
+    assert fileobj.getvalue() == bytes.fromhex(
+        # stream 1
+        "fd377a585a0000016922de36"
+        "0200210116000000742fe5a30100016161000000d7198a07"  # existing
+        "0200210116000000742fe5a30100016262000000ae1baeb5"  # same check
+        "00021602160200008ba0042b"
+        "3e300d8b020000000001595a"
+        # stream 2 (changed check)
+        "fd377a585a000004e6d6b446"
+        "0200210116000000742fe5a30100016363000000330d82b4bacc99a6"
+        "00011a02dc2ea57e"
+        "1fb6f37d010000000004595a"
+    )
+
+
+def test_change_filters():
+    fileobj = BytesIO()
+
+    with XZFile(fileobj, "w", check=1) as xzfile:
+        xzfile.write(b"aa")
+        xzfile.change_block()
+        xzfile.filters = [{"id": 3, "dist": 1}, {"id": 33}]
+        xzfile.write(b"bb")
+        xzfile.change_block()
+        xzfile.write(b"cc")
+        xzfile.change_block()
+        xzfile.write(b"dd")
+        xzfile.change_stream()
+        xzfile.write(b"ee")
+        xzfile.change_block()
+        xzfile.write(b"ff")
+        xzfile.change_stream()
+        xzfile.write(b"gg")
+        xzfile.change_block()
+        xzfile.write(b"hh")
+
+    assert fileobj.getvalue() == bytes.fromhex(
+        ## stream 1
+        # header
+        "fd377a585a0000016922de36"
+        # block 1
+        "0200210116000000742fe5a30100016161000000d7198a07"
+        # block 2
+        "0200210116000000742fe5a30100016262000000ae1baeb5"
+        # block 3 (changed filters)
+        "02010301002101167920c4ee0100016300000000791ab2db"
+        # block 4 (changed filters)
+        "02010301002101167920c4ee01000164000000001d19970a"
+        # index
+        "0004160216021602160200008a2bb83b"
+        # footer
+        "9be35140030000000001595a"
+        ## stream 2
+        # header
+        "fd377a585a0000016922de36"
+        # block 1 (changed filters)
+        "02010301002101167920c4ee0100016500000000ca188b64"
+        # block 2 (changed filters)
+        "02010301002101167920c4ee0100016600000000b31aafd6"
+        # index
+        "00021602160200008ba0042b"
+        # footer
+        "3e300d8b020000000001595a"
+        ## stream 3
+        # header
+        "fd377a585a0000016922de36"
+        # block 1 (changed filters)
+        "02010301002101167920c4ee0100016700000000641bb3b8"
+        # block 2 (changed filters)
+        "02010301002101167920c4ee01000168000000003a1a94af"
+        # index
+        "00021602160200008ba0042b"
+        # footer
+        "3e300d8b020000000001595a"
+    )
+
+
+def test_change_filters_on_existing():
+    fileobj = BytesIO(
+        bytes.fromhex(
+            # stream 1
+            "fd377a585a0000016922de36"
+            "0200210116000000742fe5a30100016161000000d7198a07"
+            "00011602d06110d2"
+            "9042990d010000000001595a"
+        )
+    )
+
+    with XZFile(fileobj, "r+", filters=[{"id": 3, "dist": 1}, {"id": 33}]) as xzfile:
+        xzfile.seek(0, SEEK_END)
+        xzfile.write(b"bb")
+        xzfile.change_block()
+        xzfile.write(b"cc")
+
+    assert fileobj.getvalue() == bytes.fromhex(
+        "fd377a585a0000016922de36"
+        "0200210116000000742fe5a30100016161000000d7198a07"  # existing
+        "02010301002101167920c4ee0100016200000000ae1baeb5"  # new filters
+        "02010301002101167920c4ee0100016300000000791ab2db"  # new filters
+        "0003160216021602c47fe57f"
+        "3e300d8b020000000001595a"
+    )
+
+
+def test_change_preset():
+    fileobj = BytesIO()
+
+    with XZFile(fileobj, "w", check=1) as xzfile:
+        xzfile.write(b"aa")
+        xzfile.change_block()
+        xzfile.preset = 9
+        xzfile.write(b"bb")
+        xzfile.change_block()
+        xzfile.write(b"cc")
+        xzfile.change_block()
+        xzfile.write(b"dd")
+        xzfile.change_stream()
+        xzfile.write(b"ee")
+        xzfile.change_block()
+        xzfile.write(b"ff")
+        xzfile.change_stream()
+        xzfile.write(b"gg")
+        xzfile.change_block()
+        xzfile.write(b"hh")
+
+    assert fileobj.getvalue() == bytes.fromhex(
+        ## stream 1
+        # header
+        "fd377a585a0000016922de36"
+        # block 1
+        "0200210116000000742fe5a30100016161000000d7198a07"
+        # block 2
+        "0200210116000000742fe5a30100016262000000ae1baeb5"
+        # block 3 (changed preset)
+        "020021011c00000010cf58cc0100016363000000791ab2db"
+        # block 4 (changed preset)
+        "020021011c00000010cf58cc01000164640000001d19970a"
+        # index
+        "0004160216021602160200008a2bb83b"
+        # footer
+        "9be35140030000000001595a"
+        ## stream 2
+        # header
+        "fd377a585a0000016922de36"
+        # block 1 (changed preset)
+        "020021011c00000010cf58cc0100016565000000ca188b64"
+        # block 2 (changed preset)
+        "020021011c00000010cf58cc0100016666000000b31aafd6"
+        # index
+        "00021602160200008ba0042b"
+        # footer
+        "3e300d8b020000000001595a"
+        ## stream 3
+        # header
+        "fd377a585a0000016922de36"
+        # block 1 (changed preset)
+        "020021011c00000010cf58cc0100016767000000641bb3b8"
+        # block 2 (changed preset)
+        "020021011c00000010cf58cc01000168680000003a1a94af"
+        # index
+        "00021602160200008ba0042b"
+        # footer
+        "3e300d8b020000000001595a"
+    )
+
+
+def test_change_preset_on_existing():
+    fileobj = BytesIO(
+        bytes.fromhex(
+            # stream 1
+            "fd377a585a0000016922de36"
+            "0200210116000000742fe5a30100016161000000d7198a07"
+            "00011602d06110d2"
+            "9042990d010000000001595a"
+        )
+    )
+
+    with XZFile(fileobj, "r+", preset=9) as xzfile:
+        xzfile.seek(0, SEEK_END)
+        xzfile.write(b"bb")
+        xzfile.change_block()
+        xzfile.write(b"cc")
+
+    assert fileobj.getvalue() == bytes.fromhex(
+        "fd377a585a0000016922de36"
+        "0200210116000000742fe5a30100016161000000d7198a07"  # existing
+        "020021011c00000010cf58cc0100016262000000ae1baeb5"  # new preset
+        "020021011c00000010cf58cc0100016363000000791ab2db"  # new preset
+        "0003160216021602c47fe57f"
+        "3e300d8b020000000001595a"
+    )
+
+
+#
+# misc
+#
+
+
 @pytest.mark.parametrize(
     "mode",
     (
         "rt",
-        "r+",
-        "r+b",
         "r+t",
-        "w",
-        "wb",
         "wt",
-        "w+",
-        "w+b",
         "w+t",
-        "x",
-        "xb",
         "xt",
-        "x+",
-        "x+b",
         "x+t",
-        "a",
-        "ab",
         "at",
-        "a+",
-        "a+b",
         "a+t",
+        "rw",
+        "rw+",
+        "rwb",
+        "rw+b",
+        "rwt",
+        "rw+t",
+        "rx",
+        "rx+",
+        "rxb",
+        "rx+b",
+        "rxt",
+        "rx+t",
         "what-is-this",
     ),
 )
@@ -193,6 +683,14 @@ def test_fileno_error(tmp_path):
 
         def tell(self, *args, **kwargs):
             return self.fileobj.tell(*args, **kwargs)
+
+        # pylint: disable=no-self-use
+
+        def readable(self):
+            return True
+
+        def seekable(self):
+            return True
 
     with file_path.open("rb") as fin:
         with XZFile(FakeFile(fin)) as xzfile:

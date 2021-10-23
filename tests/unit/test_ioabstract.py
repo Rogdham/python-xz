@@ -1,19 +1,68 @@
-from io import UnsupportedOperation
+from io import DEFAULT_BUFFER_SIZE, UnsupportedOperation
+from unittest.mock import Mock, call
 
 import pytest
 
 from xz.io import IOAbstract
 
+#
+# len
+#
 
-def test_io_abstract_attributes():
+
+def test_len():
     obj = IOAbstract(10)
-    assert obj.readable() is True
+    assert len(obj) == 10
+
+
+#
+# fileno
+#
+
+
+def test_fileno(tmp_path):
+    file_path = tmp_path / "file"
+    file_path.write_bytes(b"abcd")
+
+    class Impl(IOAbstract):
+        def __init__(self, fileobj):
+            super().__init__(10)
+            self.fileobj = fileobj
+
+    with file_path.open("rb") as fin:
+        obj = Impl(fin)
+        assert obj.fileno() == fin.fileno()
+
+
+def test_fileno_ko():
+    obj = IOAbstract(10)
+    with pytest.raises(UnsupportedOperation):
+        obj.fileno()
+
+
+#
+# tell / seek
+#
+
+
+def test_seek_not_seekable():
+    class Impl(IOAbstract):
+        def __init__(self):
+            super().__init__(10)
+
+        def seekable(self):
+            return False
+
+    obj = Impl()
+    assert obj.seekable() is False
+    with pytest.raises(UnsupportedOperation) as exc_info:
+        obj.seek(1)
+    assert str(exc_info.value) == "seek"
+
+
+def test_tell_seek():
+    obj = IOAbstract(10)
     assert obj.seekable() is True
-    assert obj.writable() is False
-
-
-def test_io_abstract_tell_seek():
-    obj = IOAbstract(10)
     assert obj.tell() == 0
 
     # absolute (no whence)
@@ -71,8 +120,34 @@ def test_io_abstract_tell_seek():
         obj.seek(42, 3)
     assert str(exc_info.value) == "unsupported whence value"
 
+    # seek after close
+    obj.close()
+    with pytest.raises(ValueError) as exc_info:
+        obj.seek(0)
+    assert str(exc_info.value) == "I/O operation on closed file"
 
-def test_io_abstract_tell_read():
+
+#
+# read
+#
+
+
+def test_read_non_readable():
+    class Impl(IOAbstract):
+        def __init__(self):
+            super().__init__(10)
+
+        def readable(self):
+            return False
+
+    obj = Impl()
+    assert obj.readable() is False
+    with pytest.raises(UnsupportedOperation) as exc_info:
+        obj.read(1)
+    assert str(exc_info.value) == "read"
+
+
+def test_tell_read():
     class Impl(IOAbstract):
         def __init__(self):
             super().__init__(10)
@@ -81,7 +156,11 @@ def test_io_abstract_tell_read():
             # for tests, does not rely on position
             return b"xyz"[:size]
 
+        def _write_after(self):
+            raise RuntimeError("should not be called")
+
     obj = Impl()
+    assert obj.tell() == 0
 
     # read all
     assert obj.read() == b"xyzxyzxyzx"
@@ -101,8 +180,14 @@ def test_io_abstract_tell_read():
     obj.seek(11)
     assert obj.read(2) == b""
 
+    # read after close
+    obj.close()
+    with pytest.raises(ValueError) as exc_info:
+        obj.read(1)
+    assert str(exc_info.value) == "I/O operation on closed file"
 
-def test_io_abstract_tell_read_empty():
+
+def test_tell_read_empty():
     class Impl(IOAbstract):
         def __init__(self):
             super().__init__(10)
@@ -115,27 +200,216 @@ def test_io_abstract_tell_read_empty():
             return b"a"
 
     obj = Impl()
-
+    assert obj.tell() == 0
     assert obj.read() == b"aaaaaaaaaa"
 
 
-def test_io_abstract_fileno(tmp_path):
-    file_path = tmp_path / "file"
-    file_path.write_bytes(b"abcd")
+#
+# write
+#
 
+
+def test_write_non_writeable():
     class Impl(IOAbstract):
-        # pylint: disable=abstract-method
-
-        def __init__(self, fileobj):
+        def __init__(self):
             super().__init__(10)
-            self.fileobj = fileobj
 
-    with file_path.open("rb") as fin:
-        obj = Impl(fin)
-        assert obj.fileno() == fin.fileno()
+        def writable(self):
+            return False
+
+    with Impl() as obj:
+        assert obj.writable() is False
+        with pytest.raises(UnsupportedOperation) as exc_info:
+            obj.write(b"hello")
+        assert str(exc_info.value) == "write"
 
 
-def test_io_abstract_fileno_ko():
-    obj = IOAbstract(10)
-    with pytest.raises(UnsupportedOperation):
-        obj.fileno()
+@pytest.mark.parametrize("write_partial", (True, False))
+def test_write_full(write_partial):
+    class Impl(IOAbstract):
+        def __init__(self):
+            super().__init__(10)
+            self.mock = Mock()
+
+        def _write_before(self):
+            self.mock.write_start()
+
+        def _write_after(self):
+            self.mock.write_finish()
+
+        def _write(self, data):
+            self.mock.write(bytes(data))
+            if write_partial:
+                return min(2, len(data))
+            return len(data)
+
+    with Impl() as obj:
+
+        # write before end
+        obj.seek(5)
+        with pytest.raises(ValueError) as exc_info:
+            obj.write(b"abcdef")
+        assert str(exc_info.value) == "write is only supported from EOF"
+        assert not obj.mock.called
+
+        # write at end
+        obj.seek(10)
+        assert obj.write(b"") == 0
+        assert obj.tell() == 10
+        assert not obj.mock.called
+        assert obj.write(b"ghijkl") == 6
+        assert obj.tell() == 16
+        if write_partial:
+            assert obj.mock.method_calls == [
+                call.write_start(),
+                call.write(b"ghijkl"),
+                call.write(b"ijkl"),
+                call.write(b"kl"),
+            ]
+        else:
+            assert obj.mock.method_calls == [
+                call.write_start(),
+                call.write(b"ghijkl"),
+            ]
+        obj.mock.reset_mock()
+
+        # write after end
+        obj.seek(20)
+        assert obj.write(b"mnopq") == 5
+        assert obj.tell() == 25
+        if write_partial:
+            assert obj.mock.method_calls == [
+                call.write(b"\x00\x00\x00\x00"),
+                call.write(b"\x00\x00"),
+                call.write(b"mnopq"),
+                call.write(b"opq"),
+                call.write(b"q"),
+            ]
+        else:
+            assert obj.mock.method_calls == [
+                call.write(b"\x00\x00\x00\x00"),
+                call.write(b"mnopq"),
+            ]
+        obj.mock.reset_mock()
+
+        # (big) write nothing after end (used e.g. by tuncate)
+        limit = 30 if write_partial else int(DEFAULT_BUFFER_SIZE * 3.7)
+        obj.seek(limit)
+        assert obj.write(b"") == 0
+        assert obj.tell() == limit
+        if write_partial:
+            assert obj.mock.method_calls == [
+                call.write(b"\x00\x00\x00\x00\x00"),
+                call.write(b"\x00\x00\x00"),
+                call.write(b"\x00"),
+            ]
+        else:
+            assert obj.mock.method_calls == [
+                call.write(b"\x00" * DEFAULT_BUFFER_SIZE),
+                call.write(b"\x00" * DEFAULT_BUFFER_SIZE),
+                call.write(b"\x00" * DEFAULT_BUFFER_SIZE),
+                call.write(b"\x00" * (limit - 3 * DEFAULT_BUFFER_SIZE - 25)),
+            ]
+        obj.mock.reset_mock()
+
+        # close calls write_finish once
+        obj.close()
+        assert obj.mock.method_calls == [call.write_finish()]
+        obj.mock.reset_mock()
+        obj.close()
+        assert not obj.mock.method_calls
+        obj.close()
+
+        # write after close
+        with pytest.raises(ValueError) as exc_info:
+            obj.write(b"xyz")
+        assert str(exc_info.value) == "I/O operation on closed file"
+
+
+#
+# truncate
+#
+
+
+def test_truncate_non_writeable():
+    class Impl(IOAbstract):
+        def __init__(self):
+            super().__init__(10)
+
+        def writable(self):
+            return False
+
+    with Impl() as obj:
+        assert obj.writable() is False
+        with pytest.raises(UnsupportedOperation) as exc_info:
+            obj.truncate(4)
+        assert str(exc_info.value) == "truncate"
+
+
+@pytest.mark.parametrize("with_size", (True, False))
+def test_truncate_with_size(with_size):
+    class Impl(IOAbstract):
+        def __init__(self):
+            super().__init__(10)
+            self.mock = Mock()
+
+        def _write_before(self):
+            self.mock.write_start()
+
+        def _write_after(self):
+            self.mock.write_finish()
+
+        def _write(self, data):
+            raise RuntimeError("should not be called")
+
+        def _truncate(self, size):
+            self.mock.truncate(size)
+
+    with Impl() as obj:
+        obj.seek(7)
+        assert not obj.mock.method_calls
+
+        def truncate(size):
+            if with_size:
+                return obj.truncate(size)
+            obj.seek(size)
+            return obj.truncate()
+
+        # truncate before start
+        with pytest.raises(ValueError) as exc_info:
+            obj.truncate(-1)
+        assert str(exc_info.value) == "invalid truncate size"
+        assert not obj.mock.method_calls
+
+        # truncate before end
+        assert truncate(5) == 5
+        assert not with_size or obj.tell() == 7
+        assert len(obj) == 5
+        assert obj.mock.method_calls == [call.write_start(), call.truncate(5)]
+        obj.mock.reset_mock()
+
+        # truncate at end
+        assert truncate(5) == 5
+        assert not with_size or obj.tell() == 7
+        assert len(obj) == 5
+        assert not obj.mock.method_calls
+        obj.mock.reset_mock()
+
+        # truncate after end
+        assert truncate(20) == 20
+        assert not with_size or obj.tell() == 7
+        assert len(obj) == 20
+        assert obj.mock.method_calls == [call.truncate(20)]
+        obj.mock.reset_mock()
+
+        # close calls write_finish once
+        obj.close()
+        assert obj.mock.method_calls == [call.write_finish()]
+        obj.mock.reset_mock()
+        obj.close()
+        assert not obj.mock.method_calls
+
+        # truncate after close
+        with pytest.raises(ValueError) as exc_info:
+            obj.truncate(5)
+        assert str(exc_info.value) == "I/O operation on closed file"

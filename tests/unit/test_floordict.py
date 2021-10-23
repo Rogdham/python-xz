@@ -15,7 +15,7 @@ def expect_floor_dict(floordict, items):
     assert floordict._dict == items
 
 
-def test_floor_dict_empty():
+def test_empty():
     floordict = FloorDict()
 
     expect_floor_dict(floordict, {})
@@ -24,9 +24,13 @@ def test_floor_dict_empty():
         floordict[0]  # pylint: disable=pointless-statement
     with pytest.raises(KeyError):
         floordict[42]  # pylint: disable=pointless-statement
+    with pytest.raises(KeyError):
+        floordict.last_key  # pylint: disable=pointless-statement
+    with pytest.raises(KeyError):
+        floordict.last_item  # pylint: disable=pointless-statement
 
 
-def test_floor_dict_normal():
+def test_normal():
     floordict = FloorDict()
     floordict[10] = "ten"
     floordict[50] = "fifty"
@@ -36,6 +40,8 @@ def test_floor_dict_normal():
     expect_floor_dict(floordict, {10: "ten", 50: "fifty"})
 
     assert floordict[10] == "ten"
+    assert floordict.last_key == 50
+    assert floordict.last_item == "fifty"
 
     assert floordict[42] == "ten"
     assert floordict[42, False] == "ten"
@@ -55,7 +61,7 @@ def test_floor_dict_normal():
         floordict["wrong type"]  # pylint: disable=pointless-statement
 
 
-def test_floor_dict_override():
+def test_override():
     floordict = FloorDict()
     floordict[10] = "ten"
     floordict[20] = "twenty"
@@ -72,7 +78,7 @@ def test_floor_dict_override():
     expect_floor_dict(floordict, {10: "ten", 20: "two-ten", 30: "thirty"})
 
 
-def test_floor_dict_del():
+def test_del():
     floordict = FloorDict()
     floordict[10] = "ten"
     floordict[20] = "twenty"
@@ -92,7 +98,7 @@ def test_floor_dict_del():
         del floordict[40]
 
 
-def test_floor_dict_pop():
+def test_pop():
     floordict = FloorDict()
     floordict[10] = "ten"
     floordict[20] = "twenty"
@@ -108,7 +114,7 @@ def test_floor_dict_pop():
     assert floordict[25] == "ten"
 
 
-def test_floor_dict_values():
+def test_values():
     floordict = FloorDict()
     expected = {}
     for i in range(50):

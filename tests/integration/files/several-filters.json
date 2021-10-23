@@ -10,6 +10,22 @@
       "check": 4,
       "blocks": [
         {
+          "filters": [
+            {
+              "id": 4,
+              "start_offset": 42
+            },
+            {
+              "id": 3,
+              "dist": 3
+            },
+            {
+              "id": 5
+            },
+            {
+              "id": 33
+            }
+          ],
           "length": 20280
         }
       ]

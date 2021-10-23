@@ -1,7 +1,11 @@
+from io import UnsupportedOperation
+
+import pytest
+
 from xz.io import IOStatic
 
 
-def test_io_proxy_read():
+def test_read():
     static = IOStatic(b"abcdefghij")
 
     # read all
@@ -16,3 +20,18 @@ def test_io_proxy_read():
     assert static.read(3) == b"j"
     assert static.read(3) == b""
     assert static.read(3) == b""
+
+
+def test_write():
+    with IOStatic(b"abc") as static:
+        assert static.writable() is False
+        static.seek(3)
+        with pytest.raises(UnsupportedOperation):
+            static.write(b"def")
+
+
+def test_truncate():
+    with IOStatic(b"abc") as static:
+        assert static.writable() is False
+        with pytest.raises(UnsupportedOperation):
+            static.truncate()

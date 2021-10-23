@@ -4,6 +4,8 @@
 
 Pure Python implementation of the XZ file format with random access support
 
+_Leveraging the lzma module for fast (de)compression_
+
 [![GitHub build status](https://img.shields.io/github/workflow/status/rogdham/python-xz/build/master)](https://github.com/rogdham/python-xz/actions?query=branch:master)&nbsp;[![Release on PyPI](https://img.shields.io/pypi/v/python-xz)](https://pypi.org/project/python-xz/)&nbsp;[![Code coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/rogdham/python-xz/search?q=fail+under&type=Code)&nbsp;[![MIT License](https://img.shields.io/pypi/l/python-xz)](https://github.com/Rogdham/python-xz/blob/master/LICENSE.txt)
 
 ---
@@ -14,40 +16,42 @@ Pure Python implementation of the XZ file format with random access support
 
 ---
 
-A XZ file can be composed of several streams and blocks. This allows for random access
-when reading, but this is not supported by Python's builtin `lzma` module, which would
-read all previous blocks for nothing.
+A XZ file can be composed of several streams and blocks. This allows for fast random
+access when reading, but this is not supported by Python's builtin `lzma` module (which
+would read all previous blocks for nothing).
 
 <div align="center">
 
-|                 |      [lzma]       |      [lzmaffi]       |      python-xz       |
-| :-------------: | :---------------: | :------------------: | :------------------: |
-|   module type   |      builtin      |  cffi (C extension)  |     pure Python      |
-|   📄 **read**   |                   |                      |                      |
-|  random access  | ❌ no<sup>1</sup> |  ✔️ yes<sup>2</sup>  |  ✔️ yes<sup>2</sup>  |
-| several blocks  |      ✔️ yes       | ✔️✔️ yes<sup>3</sup> | ✔️✔️ yes<sup>3</sup> |
-| several streams |      ✔️ yes       |        ✔️ yes        | ✔️✔️ yes<sup>4</sup> |
-| stream padding  |       ❌ no       |        ✔️ yes        |        ✔️ yes        |
-|  📝 **write**   |                   |                      |                      |
-|    `w` mode     |      ✔️ yes       |        ✔️ yes        |      ⏳ planned      |
-|    `x` mode     |      ✔️ yes       |        ❌ no         |      ⏳ planned      |
-|    `a` mode     |   ✔️ new stream   |    ✔️ new stream     |      ⏳ planned      |
-|   `r+w` mode    |       ❌ no       |        ❌ no         |      ⏳ planned      |
-| several blocks  |       ❌ no       |        ❌ no         |      ⏳ planned      |
-| several streams | ❌ no<sup>5</sup> |  ❌ no<sup>5</sup>   |      ⏳ planned      |
-| stream padding  | ❌ no<sup>6</sup> |        ✔️ yes        |      ⏳ planned      |
+|                   |      [lzma]       |      [lzmaffi]       |      python-xz       |
+| :---------------: | :---------------: | :------------------: | :------------------: |
+|    module type    |      builtin      |  cffi (C extension)  |     pure Python      |
+|    📄 **read**    |                   |                      |                      |
+|   random access   | ❌ no<sup>1</sup> |  ✔️ yes<sup>2</sup>  |  ✔️ yes<sup>2</sup>  |
+|  several blocks   |      ✔️ yes       | ✔️✔️ yes<sup>3</sup> | ✔️✔️ yes<sup>3</sup> |
+|  several streams  |      ✔️ yes       |        ✔️ yes        | ✔️✔️ yes<sup>4</sup> |
+|  stream padding   | ❌ no<sup>5</sup> |        ✔️ yes        |        ✔️ yes        |
+|   📝 **write**    |                   |                      |                      |
+|     `w` mode      |      ✔️ yes       |        ✔️ yes        |        ✔️ yes        |
+|     `x` mode      |      ✔️ yes       |        ❌ no         |        ✔️ yes        |
+|     `a` mode      |   ✔️ new stream   |    ✔️ new stream     |      ⏳ planned      |
+| `r+`/`w+`/… modes |       ❌ no       |        ❌ no         |        ✔️ yes        |
+|  several blocks   |       ❌ no       |        ❌ no         |        ✔️ yes        |
+|  several streams  | ❌ no<sup>6</sup> |  ❌ no<sup>6</sup>   |        ✔️ yes        |
+|  stream padding   |       ❌ no       |        ❌ no         |      ⏳ planned      |
 
 </div>
-<sub>
+
+<details>
+<summary>Notes</summary>
 
 1. Reading from a position will read the file from the very beginning
 2. Reading from a position will read the file from the beginning of the block
 3. Block positions available with the `block_boundaries` attribute
 4. Stream positions available with the `stream_boundaries` attribute
-5. Possible by manually closing and re-opening in append mode
-6. Related [issue](https://bugs.python.org/issue44134)
+5. Related [issue](https://bugs.python.org/issue44134)
+6. Possible by manually closing and re-opening in append mode
 
-</sub>
+</details>
 
 [lzma]: https://docs.python.org/3/library/lzma.html
 [lzmaffi]: https://github.com/r3m0t/backports.lzma
@@ -56,9 +60,9 @@ read all previous blocks for nothing.
 
 ## Usage
 
-### Read mode
-
 The API is similar to [lzma]: you can use either `xz.open` or `xz.XZFile`.
+
+### Read mode
 
 ```python
 >>> with xz.open('example.xz') as fin:
@@ -95,7 +99,32 @@ are still in bytes (just like with `lzma.open`).
 
 ### Write mode
 
-_This mode is not available yet._
+Writing is only supported from the end of file. It is however possible to truncate the
+file first. Note that truncating is only supported on block boundaries.
+
+```python
+>>> with xz.open('test.xz', 'w') as fout:
+...     fout.write(b'Hello, world!\n')
+...     fout.write(b'This sentence is still in the previous block\n')
+...     fout.change_block()
+...     fout.write(b'But this one is in its own!\n')
+...
+14
+45
+28
+```
+
+Advanced usage:
+
+- Modes like `r+`/`w+`/`x+` allow to open for both read and write at the same time;
+  however in the current implementation, a block with writing in progress is
+  automatically closed when reading data from it.
+- The `check`, `preset` and `filters` arguments to `xz.open` and `xz.XZFile` allow to
+  configure the default values for new streams and blocks.
+- Change block with the `change_block` method (the `preset` and `filters` attributes can
+  be changed beforehand to apply to the new block).
+- Change stream with the `change_stream` method (the `check` attribute can be changed
+  beforehand to apply to the new stream).
 
 ---
 
@@ -121,7 +150,12 @@ compression ratio.
 
 ### How can I create XZ files optimized for random-access?
 
-[XZ Utils](https://tukaani.org/xz/) can create XZ files with several blocks:
+You can open the file for writing and use the `change_block` method to create several
+blocks.
+
+Other tools allow to create XZ files with several blocks as well:
+
+- [XZ Utils](https://tukaani.org/xz/) needs to be called with flags:
 
 ```sh
 $ xz -T0 file                          # threading mode
@@ -129,7 +163,7 @@ $ xz --block-size 16M file             # same size for all blocks
 $ xz --block-list 16M,32M,8M,42M file  # specific size for each block
 ```
 
-[PIXZ](https://github.com/vasi/pixz) creates files with several blocks by default:
+- [PIXZ](https://github.com/vasi/pixz) creates files with several blocks by default:
 
 ```sh
 $ pixz file

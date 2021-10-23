@@ -1,16 +1,18 @@
 import doctest
 import os
 from pathlib import Path
+import shutil
 
 import pytest
 
 import xz
 
 
-@pytest.fixture(autouse=True, scope="module")
-def change_dir():
+@pytest.fixture(autouse=True)
+def change_dir(tmp_path):
     old_dir = os.getcwd()
-    os.chdir(Path(__file__).parent / "files")
+    shutil.copy(Path(__file__).parent / "files" / "example.xz", tmp_path)
+    os.chdir(tmp_path)
     yield
     os.chdir(old_dir)
 

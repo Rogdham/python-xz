@@ -1,4 +1,4 @@
-from hashlib import sha1
+from hashlib import sha256
 import subprocess
 
 import pytest
@@ -8,7 +8,7 @@ import pytest
 def test(integration_case, data_pattern):
     xz_path, metadata = integration_case
 
-    expected_hash = sha1(xz_path.read_bytes())
+    expected_hash = sha256(xz_path.read_bytes())
 
     # note that we override current xz file
     # this allows to create new integration files from json metadata
@@ -28,6 +28,6 @@ def test(integration_case, data_pattern):
             )
     assert not data
 
-    generated_hash = sha1(xz_path.read_bytes())
+    generated_hash = sha256(xz_path.read_bytes())
 
     assert generated_hash.hexdigest() == expected_hash.hexdigest()

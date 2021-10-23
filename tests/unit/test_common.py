@@ -1,8 +1,9 @@
-from lzma import CHECK_CRC32, CHECK_CRC64, CHECK_NONE, CHECK_SHA256
+from lzma import CHECK_CRC32, CHECK_CRC64, CHECK_NONE, CHECK_SHA256, is_check_supported
 
 import pytest
 
 from xz.common import (
+    DEFAULT_CHECK,
     XZError,
     create_xz_header,
     create_xz_index_footer,
@@ -151,6 +152,12 @@ def test_create_xz_index(records, data):
     assert create_xz_index_footer(1, records)[:-12] == bytes.fromhex(data)
 
 
+def test_create_xz_index_invalid():
+    with pytest.raises(XZError) as exc_info:
+        create_xz_index_footer(1, [(73, 60), (0, 12), (56, 30)])
+    assert str(exc_info.value) == "index record unpadded size"
+
+
 @pytest.mark.parametrize("records, data", XZ_INDEX_CASES)
 def test_parse_xz_index(records, data):
     assert parse_xz_index(bytes.fromhex(data)) == records
@@ -215,3 +222,7 @@ def test_parse_xz_footer_invalid(data, message):
     with pytest.raises(XZError) as exc_info:
         parse_xz_footer(bytes.fromhex(data))
     assert str(exc_info.value) == message
+
+
+def test_default_check_supported():
+    assert is_check_supported(DEFAULT_CHECK)

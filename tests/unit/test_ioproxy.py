@@ -1,10 +1,19 @@
 from io import BytesIO
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 from xz.io import IOProxy
 
 
-def test_io_proxy_seek():
+def test_fileno(tmp_path):
+    file_path = tmp_path / "file"
+    file_path.write_bytes(b"abcd")
+
+    with file_path.open("rb") as fin:
+        obj = IOProxy(fin, 1, 3)
+        assert obj.fileno() == fin.fileno()
+
+
+def test_seek():
     original = Mock()
     proxy = IOProxy(original, 4, 14)
 
@@ -15,7 +24,7 @@ def test_io_proxy_seek():
     assert not original.method_calls  # did not touch original
 
 
-def test_io_proxy_read():
+def test_read():
     original = BytesIO(b"xxxxabcdefghijyyyyy")
     proxy = IOProxy(original, 4, 14)
 
@@ -48,10 +57,24 @@ def test_io_proxy_read():
     assert original.tell() == 14
 
 
-def test_io_proxy_fileno(tmp_path):
-    file_path = tmp_path / "file"
-    file_path.write_bytes(b"abcd")
+def test_write():
+    original = BytesIO(b"xxxxabcdefghijyyyyy")
+    with IOProxy(original, 4, 14) as proxy:
+        proxy.seek(10)
 
-    with file_path.open("rb") as fin:
-        obj = IOProxy(fin, 1, 3)
-        assert obj.fileno() == fin.fileno()
+        assert proxy.write(b"uvw") == 3
+        assert original.getvalue() == b"xxxxabcdefghijuvwyy"
+
+        assert proxy.write(b"UVWXYZ") == 6
+        assert original.getvalue() == b"xxxxabcdefghijuvwUVWXYZ"
+
+
+def test_truncate():
+    original = Mock()
+    with IOProxy(original, 4, 14) as proxy:
+        assert proxy.truncate(5) == 5
+        assert original.method_calls == [call.truncate(9)]
+        original.reset_mock()
+
+        assert proxy.truncate(20) == 20
+        assert original.method_calls == [call.truncate(24)]

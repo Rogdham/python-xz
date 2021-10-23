@@ -1,4 +1,5 @@
 from binascii import crc32 as crc32int
+import lzma
 from struct import pack, unpack
 
 HEADER_MAGIC = b"\xfd7zXZ\x00"
@@ -12,7 +13,7 @@ class XZError(Exception):
 def encode_mbi(value):
     data = bytearray()
     while value >= 0x80:
-        data.append((value | 0x80) & 0xFF)
+        data.append((value & 0x7F) | 0x80)
         value >>= 7
     data.append(value)
     return data
@@ -57,6 +58,8 @@ def create_xz_index_footer(check, records):
     index = b"\x00"
     index += encode_mbi(len(records))
     for unpadded_size, uncompressed_size in records:
+        if not unpadded_size:
+            raise XZError("index record unpadded size")
         index += encode_mbi(unpadded_size)
         index += encode_mbi(uncompressed_size)
     index += pad(len(index))
@@ -124,3 +127,7 @@ def parse_xz_footer(footer):
     if flag_first_byte or not 0 <= check <= 0xF:
         raise XZError("footer flags")
     return (check, backward_size)
+
+
+# find default value for check implicitely used by lzma
+DEFAULT_CHECK = parse_xz_header(lzma.compress(b"")[:12])
