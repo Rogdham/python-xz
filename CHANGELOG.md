@@ -7,7 +7,11 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/rogdham/bigxml/compare/v0.1.2...HEAD
+[unreleased]: https://github.com/rogdham/python-xz/compare/v0.2.0...HEAD
+
+## [0.2.0] - 2021-10-23
+
+[0.2.0]: https://github.com/rogdham/python-xz/releases/tag/v0.2.0
 
 ### :rocket: Added
 
@@ -20,6 +24,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 ### :house: Internal
 
 - Test that no warnings are generated
+- Change development status to Alpha
 
 ## [0.1.2] - 2021-09-19
 
