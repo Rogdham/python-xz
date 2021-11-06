@@ -1,4 +1,5 @@
 from io import SEEK_CUR
+from typing import IO, List
 
 from xz.block import XZBlock
 from xz.common import (
@@ -11,10 +12,17 @@ from xz.common import (
     round_up,
 )
 from xz.io import IOCombiner, IOProxy
+from xz.typing import _LZMAFiltersType, _LZMAPresetType
 
 
-class XZStream(IOCombiner):
-    def __init__(self, fileobj, check, preset=None, filters=None):
+class XZStream(IOCombiner[XZBlock]):
+    def __init__(
+        self,
+        fileobj: IOProxy,
+        check: int,
+        preset: _LZMAPresetType = None,
+        filters: _LZMAFiltersType = None,
+    ) -> None:
         super().__init__()
         self.fileobj = fileobj
         self._check = check
@@ -22,21 +30,21 @@ class XZStream(IOCombiner):
         self.filters = filters
 
     @property
-    def check(self):
+    def check(self) -> int:
         return self._check
 
     @property
-    def block_boundaries(self):
+    def block_boundaries(self) -> List[int]:
         return list(self._fileobjs)
 
     @property
-    def _fileobj_blocks_end_pos(self):
+    def _fileobj_blocks_end_pos(self) -> int:
         return 12 + sum(
             round_up(block.unpadded_size) for block in self._fileobjs.values()
         )
 
     @classmethod
-    def parse(cls, fileobj):
+    def parse(cls, fileobj: IO[bytes]) -> "XZStream":
         """Parse one XZ stream from a fileobj.
 
         fileobj position should be right at the end of the stream when calling
@@ -81,7 +89,7 @@ class XZStream(IOCombiner):
             stream._append(block)
         return stream
 
-    def _create_fileobj(self):
+    def _create_fileobj(self) -> XZBlock:
         self.fileobj.truncate(self._fileobj_blocks_end_pos)
         return XZBlock(
             IOProxy(
@@ -96,13 +104,13 @@ class XZStream(IOCombiner):
             self.filters,
         )
 
-    def _write_before(self):
+    def _write_before(self) -> None:
         if not self:
             self.fileobj.seek(0)
             self.fileobj.truncate()
             self.fileobj.write(create_xz_header(self.check))
 
-    def _write_after(self):
+    def _write_after(self) -> None:
         super()._write_after()
         self.fileobj.seek(self._fileobj_blocks_end_pos)
         self.fileobj.truncate()
@@ -116,7 +124,7 @@ class XZStream(IOCombiner):
             )
         )
 
-    def change_block(self):
+    def change_block(self) -> None:
         """
         End the current block, and create a new one.
 

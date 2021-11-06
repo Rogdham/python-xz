@@ -5,7 +5,7 @@ import pytest
 from xz.io import IOStatic
 
 
-def test_read():
+def test_read() -> None:
     static = IOStatic(b"abcdefghij")
 
     # read all
@@ -22,7 +22,7 @@ def test_read():
     assert static.read(3) == b""
 
 
-def test_write():
+def test_write() -> None:
     with IOStatic(b"abc") as static:
         assert static.writable() is False
         static.seek(3)
@@ -30,7 +30,7 @@ def test_write():
             static.write(b"def")
 
 
-def test_truncate():
+def test_truncate() -> None:
     with IOStatic(b"abc") as static:
         assert static.writable() is False
         with pytest.raises(UnsupportedOperation):

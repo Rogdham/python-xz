@@ -1,11 +1,17 @@
 from hashlib import sha256
+from pathlib import Path
+from typing import Any, Dict, Tuple
 
 import pytest
 
 import xz
 
+_IntegrationCase = Tuple[Path, Dict[str, Any]]
 
-def test(integration_case, data_pattern, tmp_path):
+
+def test(
+    integration_case: _IntegrationCase, data_pattern: bytes, tmp_path: Path
+) -> None:
     xz_path, metadata = integration_case
     data = memoryview(data_pattern)
 

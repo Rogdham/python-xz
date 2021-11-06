@@ -1,7 +1,12 @@
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
 from xz import XZFile
 
+_IntegrationCase = Tuple[Path, Dict[str, Any]]
 
-def test_read_all(integration_case, data_pattern):
+
+def test_read_all(integration_case: _IntegrationCase, data_pattern: bytes) -> None:
     xz_path, metadata = integration_case
     with XZFile(xz_path) as xzfile:
         streams_items = list(
@@ -34,7 +39,7 @@ def test_read_all(integration_case, data_pattern):
         assert xzfile.read() == data_pattern
 
 
-def test_read_reversed(integration_case, data_pattern):
+def test_read_reversed(integration_case: _IntegrationCase, data_pattern: bytes) -> None:
     xz_path, _ = integration_case
     with XZFile(xz_path) as xzfile:
         # we are testing the worst possible case (lots of negative seeking)

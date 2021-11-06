@@ -1,5 +1,6 @@
 from io import DEFAULT_BUFFER_SIZE, SEEK_SET
 from lzma import FORMAT_XZ, LZMACompressor, LZMADecompressor, LZMAError
+from typing import Tuple, Union
 
 from xz.common import (
     XZError,
@@ -9,12 +10,19 @@ from xz.common import (
     parse_xz_index,
 )
 from xz.io import IOAbstract, IOCombiner, IOStatic
+from xz.typing import _LZMAFiltersType, _LZMAPresetType
 
 
 class BlockRead:
     read_size = DEFAULT_BUFFER_SIZE
 
-    def __init__(self, fileobj, check, unpadded_size, uncompressed_size):
+    def __init__(
+        self,
+        fileobj: IOAbstract,
+        check: int,
+        unpadded_size: int,
+        uncompressed_size: int,
+    ) -> None:
         self.length = uncompressed_size
         self.fileobj = IOCombiner(
             IOStatic(create_xz_header(check)),
@@ -25,12 +33,12 @@ class BlockRead:
         )
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.fileobj.seek(0, SEEK_SET)
         self.pos = 0
         self.decompressor = LZMADecompressor(format=FORMAT_XZ)
 
-    def decompress(self, pos, size):
+    def decompress(self, pos: int, size: int) -> bytes:
         if pos < self.pos:
             self.reset()
 
@@ -63,7 +71,13 @@ class BlockRead:
 
 
 class BlockWrite:
-    def __init__(self, fileobj, check, preset, filters):
+    def __init__(
+        self,
+        fileobj: IOAbstract,
+        check: int,
+        preset: _LZMAPresetType,
+        filters: _LZMAFiltersType,
+    ) -> None:
         self.fileobj = fileobj
         self.check = check
         self.compressor = LZMACompressor(FORMAT_XZ, check, preset, filters)
@@ -71,16 +85,16 @@ class BlockWrite:
         if self.compressor.compress(b"") != create_xz_header(check):
             raise XZError("block: compressor header")
 
-    def _write(self, data):
+    def _write(self, data: bytes) -> None:
         if data:
             self.fileobj.seek(self.pos)
             self.fileobj.write(data)
             self.pos += len(data)
 
-    def compress(self, data):
+    def compress(self, data: bytes) -> None:
         self._write(self.compressor.compress(data))
 
-    def finish(self):
+    def finish(self) -> Tuple[int, int]:
         data = self.compressor.flush()
 
         # footer
@@ -102,12 +116,12 @@ class BlockWrite:
 class XZBlock(IOAbstract):
     def __init__(
         self,
-        fileobj,
-        check,
-        unpadded_size,
-        uncompressed_size,
-        preset=None,
-        filters=None,
+        fileobj: IOAbstract,
+        check: int,
+        unpadded_size: int,
+        uncompressed_size: int,
+        preset: _LZMAPresetType = None,
+        filters: _LZMAFiltersType = None,
     ):
         super().__init__(uncompressed_size)
         self.fileobj = fileobj
@@ -115,13 +129,13 @@ class XZBlock(IOAbstract):
         self.preset = preset
         self.filters = filters
         self.unpadded_size = unpadded_size
-        self.operation = None
+        self.operation: Union[BlockRead, BlockWrite, None] = None
 
     @property
-    def uncompressed_size(self):
+    def uncompressed_size(self) -> int:
         return self._length
 
-    def _read(self, size):
+    def _read(self, size: int) -> bytes:
         # enforce read mode
         if not isinstance(self.operation, BlockRead):
             self._write_end()
@@ -138,10 +152,10 @@ class XZBlock(IOAbstract):
         except LZMAError as ex:
             raise XZError(f"block: error while decompressing: {ex}") from ex
 
-    def writable(self):
+    def writable(self) -> bool:
         return isinstance(self.operation, BlockWrite) or not self._length
 
-    def _write(self, data):
+    def _write(self, data: bytes) -> int:
         # enforce write mode
         if not isinstance(self.operation, BlockWrite):
             self.operation = BlockWrite(
@@ -155,14 +169,14 @@ class XZBlock(IOAbstract):
         self.operation.compress(data)
         return len(data)
 
-    def _write_after(self):
+    def _write_after(self) -> None:
         if isinstance(self.operation, BlockWrite):
             self.unpadded_size, uncompressed_size = self.operation.finish()
             if uncompressed_size != self.uncompressed_size:
                 raise XZError("block: compressor uncompressed size")
             self.operation = None
 
-    def _truncate(self, size):
+    def _truncate(self, size: int) -> None:
         # thanks to the writable method, we are sure that length is zero
         # so we don't need to handle the case of truncating in middle of the block
         self.seek(size)

@@ -1,4 +1,6 @@
 from io import DEFAULT_BUFFER_SIZE, UnsupportedOperation
+from pathlib import Path
+from typing import IO
 from unittest.mock import Mock, call
 
 import pytest
@@ -10,7 +12,7 @@ from xz.io import IOAbstract
 #
 
 
-def test_len():
+def test_len() -> None:
     obj = IOAbstract(10)
     assert len(obj) == 10
 
@@ -20,12 +22,12 @@ def test_len():
 #
 
 
-def test_fileno(tmp_path):
+def test_fileno(tmp_path: Path) -> None:
     file_path = tmp_path / "file"
     file_path.write_bytes(b"abcd")
 
     class Impl(IOAbstract):
-        def __init__(self, fileobj):
+        def __init__(self, fileobj: IO[bytes]) -> None:
             super().__init__(10)
             self.fileobj = fileobj
 
@@ -34,7 +36,7 @@ def test_fileno(tmp_path):
         assert obj.fileno() == fin.fileno()
 
 
-def test_fileno_ko():
+def test_fileno_ko() -> None:
     obj = IOAbstract(10)
     with pytest.raises(UnsupportedOperation):
         obj.fileno()
@@ -45,12 +47,12 @@ def test_fileno_ko():
 #
 
 
-def test_seek_not_seekable():
+def test_seek_not_seekable() -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
 
-        def seekable(self):
+        def seekable(self) -> bool:
             return False
 
     obj = Impl()
@@ -60,7 +62,7 @@ def test_seek_not_seekable():
     assert str(exc_info.value) == "seek"
 
 
-def test_tell_seek():
+def test_tell_seek() -> None:
     obj = IOAbstract(10)
     assert obj.seekable() is True
     assert obj.tell() == 0
@@ -132,12 +134,12 @@ def test_tell_seek():
 #
 
 
-def test_read_non_readable():
+def test_read_non_readable() -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
 
-        def readable(self):
+        def readable(self) -> bool:
             return False
 
     obj = Impl()
@@ -147,16 +149,16 @@ def test_read_non_readable():
     assert str(exc_info.value) == "read"
 
 
-def test_tell_read():
+def test_tell_read() -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
 
-        def _read(self, size):
+        def _read(self, size: int) -> bytes:
             # for tests, does not rely on position
             return b"xyz"[:size]
 
-        def _write_after(self):
+        def _write_after(self) -> None:
             raise RuntimeError("should not be called")
 
     obj = Impl()
@@ -187,13 +189,13 @@ def test_tell_read():
     assert str(exc_info.value) == "I/O operation on closed file"
 
 
-def test_tell_read_empty():
+def test_tell_read_empty() -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
             self.empty_reads = 100
 
-        def _read(self, size):
+        def _read(self, size: int) -> bytes:
             self.empty_reads -= 1
             if self.empty_reads > 0:
                 return b""
@@ -209,12 +211,12 @@ def test_tell_read_empty():
 #
 
 
-def test_write_non_writeable():
+def test_write_non_writeable() -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
 
-        def writable(self):
+        def writable(self) -> bool:
             return False
 
     with Impl() as obj:
@@ -225,19 +227,19 @@ def test_write_non_writeable():
 
 
 @pytest.mark.parametrize("write_partial", (True, False))
-def test_write_full(write_partial):
+def test_write_full(write_partial: bool) -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
             self.mock = Mock()
 
-        def _write_before(self):
+        def _write_before(self) -> None:
             self.mock.write_start()
 
-        def _write_after(self):
+        def _write_after(self) -> None:
             self.mock.write_finish()
 
-        def _write(self, data):
+        def _write(self, data: bytes) -> int:
             self.mock.write(bytes(data))
             if write_partial:
                 return min(2, len(data))
@@ -331,12 +333,12 @@ def test_write_full(write_partial):
 #
 
 
-def test_truncate_non_writeable():
+def test_truncate_non_writeable() -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
 
-        def writable(self):
+        def writable(self) -> bool:
             return False
 
     with Impl() as obj:
@@ -347,29 +349,29 @@ def test_truncate_non_writeable():
 
 
 @pytest.mark.parametrize("with_size", (True, False))
-def test_truncate_with_size(with_size):
+def test_truncate_with_size(with_size: bool) -> None:
     class Impl(IOAbstract):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(10)
             self.mock = Mock()
 
-        def _write_before(self):
+        def _write_before(self) -> None:
             self.mock.write_start()
 
-        def _write_after(self):
+        def _write_after(self) -> None:
             self.mock.write_finish()
 
-        def _write(self, data):
+        def _write(self, data: bytes) -> int:
             raise RuntimeError("should not be called")
 
-        def _truncate(self, size):
+        def _truncate(self, size: int) -> None:
             self.mock.truncate(size)
 
     with Impl() as obj:
         obj.seek(7)
         assert not obj.mock.method_calls
 
-        def truncate(size):
+        def truncate(size: int) -> int:
             if with_size:
                 return obj.truncate(size)
             obj.seek(size)

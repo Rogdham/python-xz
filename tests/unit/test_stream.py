@@ -1,9 +1,11 @@
 from io import SEEK_CUR, SEEK_END, BytesIO
+from typing import Callable, Tuple, cast
 from unittest.mock import Mock, call
 
 import pytest
 
 from xz.common import XZError
+from xz.io import IOProxy
 from xz.stream import XZStream
 
 # a stream with two blocks (lengths: 100, 90)
@@ -23,7 +25,7 @@ STREAM_BYTES_EMPTY = bytes.fromhex(
 )
 
 
-def test_parse(data_pattern_locate):
+def test_parse(data_pattern_locate: Callable[[bytes], Tuple[int, int]]) -> None:
     fileobj = Mock(wraps=BytesIO(b"\xff" * 1000 + STREAM_BYTES + b"\xee" * 1000))
     fileobj.seek(-1000, SEEK_END)
     fileobj.method_calls.clear()
@@ -76,7 +78,7 @@ def test_parse(data_pattern_locate):
     assert data_pattern_locate(stream.read()) == (170, 20)
 
 
-def test_parse_invalid_stream_flags_missmatch():
+def test_parse_invalid_stream_flags_missmatch() -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000004e6d6b446000000001cdf44219042990d010000000001595a"
@@ -88,7 +90,7 @@ def test_parse_invalid_stream_flags_missmatch():
     assert str(exc_info.value) == "stream: inconsistent check value"
 
 
-def test_parse_empty_block():
+def test_parse_empty_block() -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a0000016922de360200210116000000742fe5a30000000000000000"
@@ -101,7 +103,7 @@ def test_parse_empty_block():
     assert str(exc_info.value) == "index record uncompressed size"
 
 
-def test_parse_empty_stream():
+def test_parse_empty_stream() -> None:
     fileobj = BytesIO(STREAM_BYTES_EMPTY)
     fileobj.seek(0, SEEK_END)
     stream = XZStream.parse(fileobj)
@@ -109,14 +111,14 @@ def test_parse_empty_stream():
     assert stream.block_boundaries == []
 
 
-def test_write(data_pattern):
+def test_write(data_pattern: bytes) -> None:
     # init with more size than what will be written at the end
     init_size = 1024
     assert len(STREAM_BYTES) < init_size
 
     fileobj = BytesIO(b"A" * init_size)
 
-    with XZStream(fileobj, 1) as stream:
+    with XZStream(cast(IOProxy, fileobj), 1) as stream:
         assert fileobj.getvalue() == b"A" * init_size
 
         assert stream.block_boundaries == []
@@ -136,7 +138,7 @@ def test_write(data_pattern):
     assert fileobj.getvalue() == STREAM_BYTES
 
 
-def test_write_from_existing_stream(data_pattern):
+def test_write_from_existing_stream(data_pattern: bytes) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a0000016922de360200210116000000742fe5a3e0006300415d0020"
@@ -156,7 +158,7 @@ def test_write_from_existing_stream(data_pattern):
     assert fileobj.getvalue() == STREAM_BYTES
 
 
-def test_truncate_and_write(data_pattern):
+def test_truncate_and_write(data_pattern: bytes) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a0000016922de360200210116000000742fe5a3e0006300415d0020"
@@ -181,7 +183,7 @@ def test_truncate_and_write(data_pattern):
     assert fileobj.getvalue() == STREAM_BYTES
 
 
-def test_truncate_middle_block():
+def test_truncate_middle_block() -> None:
     fileobj = BytesIO(STREAM_BYTES)
     fileobj.seek(0, SEEK_END)
     with pytest.raises(ValueError) as exc_info:
@@ -190,18 +192,18 @@ def test_truncate_middle_block():
     assert str(exc_info.value) == "truncate"
 
 
-def test_read_only_check():
+def test_read_only_check() -> None:
     fileobj = BytesIO()
 
-    with XZStream(fileobj, 1) as stream:
+    with XZStream(cast(IOProxy, fileobj), 1) as stream:
         with pytest.raises(AttributeError):
-            stream.check = 4
+            stream.check = 4  # type: ignore[misc]
 
 
-def test_change_filters():
+def test_change_filters() -> None:
     fileobj = BytesIO()
 
-    with XZStream(fileobj, 1) as stream:
+    with XZStream(cast(IOProxy, fileobj), 1) as stream:
         stream.write(b"aa")
         stream.change_block()
         stream.filters = [{"id": 3, "dist": 1}, {"id": 33}]
@@ -229,10 +231,10 @@ def test_change_filters():
     )
 
 
-def test_change_preset():
+def test_change_preset() -> None:
     fileobj = BytesIO()
 
-    with XZStream(fileobj, 1) as stream:
+    with XZStream(cast(IOProxy, fileobj), 1) as stream:
         stream.write(b"aa")
         stream.change_block()
         stream.preset = 9

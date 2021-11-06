@@ -1,6 +1,9 @@
 # install + dependencies
 -e .
 
+# typing
+mypy
+
 # tests
 coverage
 pytest

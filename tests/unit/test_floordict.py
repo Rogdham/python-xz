@@ -1,9 +1,11 @@
+from typing import Dict
+
 import pytest
 
 from xz.utils import FloorDict
 
 
-def expect_floor_dict(floordict, items):
+def expect_floor_dict(floordict: FloorDict[str], items: Dict[int, str]) -> None:
     sorted_keys = sorted(items)
     assert len(floordict) == len(items)
     assert list(floordict) == sorted_keys
@@ -15,8 +17,8 @@ def expect_floor_dict(floordict, items):
     assert floordict._dict == items
 
 
-def test_empty():
-    floordict = FloorDict()
+def test_empty() -> None:
+    floordict = FloorDict[str]()
 
     expect_floor_dict(floordict, {})
 
@@ -30,12 +32,12 @@ def test_empty():
         floordict.last_item  # pylint: disable=pointless-statement
 
 
-def test_normal():
-    floordict = FloorDict()
+def test_normal() -> None:
+    floordict = FloorDict[str]()
     floordict[10] = "ten"
     floordict[50] = "fifty"
     with pytest.raises(TypeError):
-        floordict["wrong type"] = "wrong type"
+        floordict["wrong type"] = "wrong type"  # type: ignore[index]
 
     expect_floor_dict(floordict, {10: "ten", 50: "fifty"})
 
@@ -44,8 +46,7 @@ def test_normal():
     assert floordict.last_item == "fifty"
 
     assert floordict[42] == "ten"
-    assert floordict[42, False] == "ten"
-    assert floordict[42, True] == (10, "ten")
+    assert floordict.get_with_index(42) == (10, "ten")
 
     assert floordict[50] == "fifty"
     assert floordict[1337] == "fifty"
@@ -58,11 +59,12 @@ def test_normal():
     with pytest.raises(KeyError):
         floordict[-42]  # pylint: disable=pointless-statement
     with pytest.raises(TypeError):
-        floordict["wrong type"]  # pylint: disable=pointless-statement
+        # pylint: disable=pointless-statement
+        floordict["wrong type"]  # type: ignore[index]
 
 
-def test_override():
-    floordict = FloorDict()
+def test_override() -> None:
+    floordict = FloorDict[str]()
     floordict[10] = "ten"
     floordict[20] = "twenty"
     floordict[30] = "thirty"
@@ -78,8 +80,8 @@ def test_override():
     expect_floor_dict(floordict, {10: "ten", 20: "two-ten", 30: "thirty"})
 
 
-def test_del():
-    floordict = FloorDict()
+def test_del() -> None:
+    floordict = FloorDict[str]()
     floordict[10] = "ten"
     floordict[20] = "twenty"
     floordict[30] = "thirty"
@@ -98,8 +100,8 @@ def test_del():
         del floordict[40]
 
 
-def test_pop():
-    floordict = FloorDict()
+def test_pop() -> None:
+    floordict = FloorDict[str]()
     floordict[10] = "ten"
     floordict[20] = "twenty"
     floordict[30] = "thirty"
@@ -114,8 +116,8 @@ def test_pop():
     assert floordict[25] == "ten"
 
 
-def test_values():
-    floordict = FloorDict()
+def test_values() -> None:
+    floordict = FloorDict[str]()
     expected = {}
     for i in range(50):
         floordict[i * 2] = str(i * 2)
@@ -124,4 +126,4 @@ def test_values():
         for j in range(100):
             value = min(i * 2, j - (j % 2))
             assert floordict[j] == str(value)
-            assert floordict[j, True] == (value, str(value))
+            assert floordict.get_with_index(j) == (value, str(value))

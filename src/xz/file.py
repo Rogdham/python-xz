@@ -1,14 +1,16 @@
 from io import SEEK_CUR, SEEK_END
 import os
+from typing import IO, List, Optional
 import warnings
 
 from xz.common import DEFAULT_CHECK, XZError
 from xz.io import IOCombiner, IOProxy
 from xz.stream import XZStream
+from xz.typing import _LZMAFilenameType, _LZMAFiltersType, _LZMAPresetType
 from xz.utils import parse_mode, proxy_property
 
 
-class XZFile(IOCombiner):
+class XZFile(IOCombiner[XZStream]):
     """A file object providing transparent XZ (de)compression.
 
     An XZFile can act as a wrapper for an existing file object, or
@@ -19,7 +21,15 @@ class XZFile(IOCombiner):
     Use xz.open if you want a *text* file interface.
     """
 
-    def __init__(self, filename=None, mode="r", *, check=-1, preset=None, filters=None):
+    def __init__(
+        self,
+        filename: _LZMAFilenameType,
+        mode: str = "r",
+        *,
+        check: int = -1,
+        preset: _LZMAPresetType = None,
+        filters: _LZMAFiltersType = None
+    ) -> None:
         """Open an XZ file in binary mode.
 
         The filename argument can be either an actual file name
@@ -53,7 +63,7 @@ class XZFile(IOCombiner):
         # get fileobj
         if isinstance(filename, (str, bytes, os.PathLike)):
             # pylint: disable=consider-using-with, unspecified-encoding
-            self.fileobj = open(filename, self.mode + "b")
+            self.fileobj: IO[bytes] = open(filename, self.mode + "b")
             self._close_fileobj = True
         elif hasattr(filename, "read"):  # weak check but better than nothing
             self.fileobj = filename
@@ -83,22 +93,22 @@ class XZFile(IOCombiner):
         self._close_check_empty = self.mode[0] != "r"
 
     @property
-    def _last_stream(self):
+    def _last_stream(self) -> Optional[XZStream]:
         try:
             return self._fileobjs.last_item
         except KeyError:
             return None
 
-    preset = proxy_property("preset", "_last_stream")
-    filters = proxy_property("filters", "_last_stream")
+    preset: _LZMAPresetType = proxy_property("preset", "_last_stream")
+    filters: _LZMAFiltersType = proxy_property("filters", "_last_stream")
 
-    def readable(self):
+    def readable(self) -> bool:
         return self._readable
 
-    def writable(self):
+    def writable(self) -> bool:
         return self._writable
 
-    def close(self):
+    def close(self) -> None:
         try:
             super().close()
             if self._close_check_empty and not self:
@@ -112,18 +122,18 @@ class XZFile(IOCombiner):
                 self.fileobj.close()  # self.fileobj exists at this point
 
     @property
-    def stream_boundaries(self):
+    def stream_boundaries(self) -> List[int]:
         return list(self._fileobjs)
 
     @property
-    def block_boundaries(self):
+    def block_boundaries(self) -> List[int]:
         return [
             stream_pos + block_boundary
             for stream_pos, stream in self._fileobjs.items()
             for block_boundary in stream.block_boundaries
         ]
 
-    def _init_parse(self):
+    def _init_parse(self) -> None:
         self.fileobj.seek(0, SEEK_END)
 
         streams = []
@@ -140,7 +150,7 @@ class XZFile(IOCombiner):
         while streams:
             self._append(streams.pop())
 
-    def _create_fileobj(self):
+    def _create_fileobj(self) -> XZStream:
         stream_pos = sum(len(stream.fileobj) for stream in self._fileobjs.values())
         return XZStream(
             IOProxy(
@@ -153,7 +163,7 @@ class XZFile(IOCombiner):
             self.filters,
         )
 
-    def change_stream(self):
+    def change_stream(self) -> None:
         """
         Create a new stream.
 
@@ -161,10 +171,11 @@ class XZFile(IOCombiner):
         if self._fileobjs:
             self._change_fileobj()
 
-    def change_block(self):
+    def change_block(self) -> None:
         """
         Create a new block.
 
         If the current block is empty, replace it instead."""
-        if self._fileobjs:
-            self._last_stream.change_block()
+        last_stream = self._last_stream
+        if last_stream:
+            last_stream.change_block()

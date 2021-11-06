@@ -1,5 +1,7 @@
 from io import BytesIO
 import lzma
+from pathlib import Path
+from typing import List, Optional
 
 import pytest
 
@@ -21,7 +23,7 @@ STREAM_BYTES = bytes.fromhex(
 #
 
 
-def test_mode_rb():
+def test_mode_rb() -> None:
     fileobj = BytesIO(STREAM_BYTES)
 
     with xz_open(fileobj, "rb") as xzfile:
@@ -35,7 +37,7 @@ def test_mode_rb():
         assert xzfile.read() == b"\xe2\x99\xa5\n"
 
 
-def test_mode_rt():
+def test_mode_rt() -> None:
     fileobj = BytesIO(STREAM_BYTES)
 
     with xz_open(fileobj, "rt") as xzfile:
@@ -48,7 +50,7 @@ def test_mode_rt():
         assert xzfile.read() == "♥\n"
 
 
-def test_mode_rt_file(tmp_path):
+def test_mode_rt_file(tmp_path: Path) -> None:
     file_path = tmp_path / "file.xz"
     file_path.write_bytes(STREAM_BYTES)
 
@@ -71,7 +73,7 @@ def test_mode_rt_file(tmp_path):
         pytest.param("latin1", "ÐµÃ±Ï²Ð¾ÔºÎµ", id="latin1"),
     ),
 )
-def test_mode_rt_encoding(encoding, expected):
+def test_mode_rt_encoding(encoding: str, expected: str) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000000ff12d9410200210116000000742fe5a301000bd0b5c3b1cf"
@@ -94,7 +96,9 @@ def test_mode_rt_encoding(encoding, expected):
         ),
     ),
 )
-def test_mode_rt_encoding_errors(errors, expected):
+def test_mode_rt_encoding_errors(
+    errors: Optional[str], expected: Optional[str]
+) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000000ff12d9410200210116000000742fe5a301000a656e99636f"
@@ -120,7 +124,7 @@ def test_mode_rt_encoding_errors(errors, expected):
         pytest.param("\r\n", ["a\nb\rc\r\n", "d"], id="'\r\n'"),
     ),
 )
-def test_mode_rt_newline(newline, expected):
+def test_mode_rt_newline(newline: Optional[str], expected: List[str]) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000000ff12d9410200210116000000742fe5a3010007610a620d63"
@@ -132,19 +136,19 @@ def test_mode_rt_newline(newline, expected):
         assert xzfile.readlines() == expected
 
 
-def test_mode_rb_encoding():
+def test_mode_rb_encoding() -> None:
     fileobj = BytesIO(STREAM_BYTES)
     with pytest.raises(ValueError):
         xz_open(fileobj, "rb", encoding="latin1")
 
 
-def test_mode_rb_encoding_errors():
+def test_mode_rb_encoding_errors() -> None:
     fileobj = BytesIO(STREAM_BYTES)
     with pytest.raises(ValueError):
         xz_open(fileobj, "rb", errors="ignore")
 
 
-def test_mode_rb_newline():
+def test_mode_rb_newline() -> None:
     fileobj = BytesIO(STREAM_BYTES)
     with pytest.raises(ValueError):
         xz_open(fileobj, "rb", newline="\n")
@@ -178,7 +182,7 @@ TEST_MODE_W_CHECK_BYTES = bytes.fromhex(
 )
 
 
-def test_mode_wb_check():
+def test_mode_wb_check() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wb", check=1) as xzfile:
@@ -194,7 +198,7 @@ def test_mode_wb_check():
     assert fileobj.getvalue() == TEST_MODE_W_CHECK_BYTES
 
 
-def test_mode_wt_check():
+def test_mode_wt_check() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", check=1) as xzfile:
@@ -251,7 +255,7 @@ TEST_MODE_W_FILTERS_BYTES = bytes.fromhex(
 )
 
 
-def test_mode_wb_filters():
+def test_mode_wb_filters() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wb", check=1) as xzfile:
@@ -275,7 +279,7 @@ def test_mode_wb_filters():
     assert fileobj.getvalue() == TEST_MODE_W_FILTERS_BYTES
 
 
-def test_mode_wt_filters():
+def test_mode_wt_filters() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", check=1) as xzfile:
@@ -340,7 +344,7 @@ TEST_MODE_W_PRESET_BYTES = bytes.fromhex(
 )
 
 
-def test_mode_wb_preset():
+def test_mode_wb_preset() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wb", check=1) as xzfile:
@@ -364,7 +368,7 @@ def test_mode_wb_preset():
     assert fileobj.getvalue() == TEST_MODE_W_PRESET_BYTES
 
 
-def test_mode_wt_preset():
+def test_mode_wt_preset() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", check=1) as xzfile:
@@ -395,7 +399,7 @@ def test_mode_wt_preset():
         pytest.param("latin1", "ÐµÃ±Ï²Ð¾ÔºÎµ", id="latin1"),
     ),
 )
-def test_mode_wt_encoding(encoding, data):
+def test_mode_wt_encoding(encoding: str, data: str) -> None:
     fileobj = BytesIO()
     with xz_open(fileobj, "wt", check=0, encoding=encoding) as xzfile:
         xzfile.write(data)
@@ -428,7 +432,7 @@ def test_mode_wt_encoding(encoding, data):
         ),
     ),
 )
-def test_mode_wt_encoding_errors(errors, data):
+def test_mode_wt_encoding_errors(errors: Optional[str], data: Optional[bytes]) -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", errors=errors) as xzfile:
@@ -453,7 +457,7 @@ def test_mode_wt_encoding_errors(errors, data):
         pytest.param("\r\n", b"a\r\nb\r\n", id="'\r\n'"),
     ),
 )
-def test_mode_wt_newline(newline, data):
+def test_mode_wt_newline(newline: Optional[str], data: bytes) -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", newline=newline) as xzfile:
@@ -468,7 +472,7 @@ def test_mode_wt_newline(newline, data):
 
 
 @pytest.mark.parametrize("mode", ("rtb", "rbt", "wtb", "wbt"))
-def test_mode_invalid(mode):
+def test_mode_invalid(mode: str) -> None:
     fileobj = BytesIO(STREAM_BYTES)
 
     with pytest.raises(ValueError) as exc_info:

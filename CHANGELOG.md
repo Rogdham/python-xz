@@ -9,6 +9,23 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 [unreleased]: https://github.com/rogdham/python-xz/compare/v0.2.0...HEAD
 
+### :boom: Breaking changes
+
+- The `filename` argument of `XZFile` is now mandatory; this change should have very
+  limited impact as not providing it makes no sense and would have raised a `TypeError`,
+  plus it was already mandatory on `xz.open`
+
+### :rocket: Added
+
+- Type hints
+
+### :house: Internal
+
+- Type validation with mypy
+- Distribute `py.typed` file in conformance with [PEP 561]
+
+[pep 561]: https://www.python.org/dev/peps/pep-0561/
+
 ## [0.2.0] - 2021-10-23
 
 [0.2.0]: https://github.com/rogdham/python-xz/releases/tag/v0.2.0

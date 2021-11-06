@@ -1,3 +1,5 @@
+from typing import Optional
+
 from xz.utils import proxy_property
 
 
@@ -6,11 +8,11 @@ class Dest:
 
 
 class Src:
-    proxy = None
+    proxy: Optional[Dest] = None
     xyz = proxy_property("abc", "proxy")
 
 
-def test_direct():
+def test_direct() -> None:
     dest = Dest()
     src = Src()
 

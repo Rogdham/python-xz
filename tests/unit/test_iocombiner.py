@@ -1,4 +1,5 @@
 from io import SEEK_SET, BytesIO
+from typing import List, cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -6,13 +7,13 @@ import pytest
 from xz.io import IOAbstract, IOCombiner, IOProxy
 
 
-def generate_mock(length):
+def generate_mock(length: int) -> Mock:
     mock = Mock()
-    mock.__class__ = IOAbstract
+    mock.__class__ = cast(Mock, IOAbstract)  # needs to be subclass of IOAbstract
     mock._length = length  # pylint: disable=protected-access
     mock.__len__ = lambda s: s._length  # pylint: disable=protected-access
 
-    def write(data):
+    def write(data: bytes) -> int:
         mock._length += len(data)
         return len(data)
 
@@ -26,7 +27,7 @@ def generate_mock(length):
 #
 
 
-def test_seek():
+def test_seek() -> None:
     originals = [
         generate_mock(2),
         generate_mock(0),
@@ -47,8 +48,8 @@ def test_seek():
 #
 
 
-def test_read():
-    originals = [
+def test_read() -> None:
+    originals: List[IOAbstract] = [
         IOProxy(BytesIO(b"abc"), 0, 3),
         generate_mock(0),  # size 0, will be never used
         IOProxy(BytesIO(b"defghij"), 0, 7),
@@ -93,7 +94,7 @@ def test_read():
     assert originals[2].tell() == 3
 
     # never used at all
-    assert not originals[1].method_calls
+    assert not cast(Mock, originals[1]).method_calls
 
 
 #
@@ -101,11 +102,11 @@ def test_read():
 #
 
 
-def test_write():
+def test_write() -> None:
     parts = []
 
-    class Combiner(IOCombiner):
-        def _create_fileobj(self):
+    class Combiner(IOCombiner[IOAbstract]):
+        def _create_fileobj(self) -> IOAbstract:
             fileobj = generate_mock(0)
             parts.append(fileobj)
             return fileobj
@@ -235,7 +236,7 @@ def test_write():
 #
 
 
-def test_truncate():
+def test_truncate() -> None:
     # pylint: disable=protected-access
     originals = [
         generate_mock(2),
@@ -297,8 +298,8 @@ def test_truncate():
 #
 
 
-def test_append():
-    combiner = IOCombiner(generate_mock(13), generate_mock(37))
+def test_append() -> None:
+    combiner = IOCombiner[IOAbstract](generate_mock(13), generate_mock(37))
     assert len(combiner) == 50
     combiner._append(  # pylint: disable=protected-access
         IOProxy(BytesIO(b"abcdefghij"), 0, 10)
@@ -308,8 +309,9 @@ def test_append():
     assert combiner.read(4) == b"efgh"
 
 
-def test_append_invalid():
-    combiner = IOCombiner(generate_mock(13), generate_mock(37))
+def test_append_invalid() -> None:
+    combiner = IOCombiner[IOAbstract](generate_mock(13), generate_mock(37))
     assert len(combiner) == 50
     with pytest.raises(TypeError):
-        combiner._append(BytesIO(b"abcdefghij"))  # pylint: disable=protected-access
+        # pylint: disable=protected-access
+        combiner._append(BytesIO(b"abcdefghij"))  # type: ignore[arg-type]

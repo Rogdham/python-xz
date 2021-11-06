@@ -1,6 +1,7 @@
 from binascii import crc32 as crc32int
 import lzma
 from struct import pack, unpack
+from typing import List, Tuple, cast
 
 HEADER_MAGIC = b"\xfd7zXZ\x00"
 FOOTER_MAGIC = b"YZ"
@@ -10,7 +11,7 @@ class XZError(Exception):
     pass
 
 
-def encode_mbi(value):
+def encode_mbi(value: int) -> bytes:
     data = bytearray()
     while value >= 0x80:
         data.append((value & 0x7F) | 0x80)
@@ -19,7 +20,7 @@ def encode_mbi(value):
     return data
 
 
-def decode_mbi(data):
+def decode_mbi(data: bytes) -> Tuple[int, int]:
     value = 0
     for size, byte in enumerate(data):
         value |= (byte & 0x7F) << (size * 7)
@@ -28,22 +29,22 @@ def decode_mbi(data):
     raise XZError("invalid mbi")
 
 
-def crc32(data):
+def crc32(data: bytes) -> bytes:
     return pack("<I", crc32int(data))
 
 
-def round_up(value):
+def round_up(value: int) -> int:
     remainder = value % 4
     if remainder:
         return value - remainder + 4
     return value
 
 
-def pad(value):
+def pad(value: int) -> bytes:
     return b"\x00" * (round_up(value) - value)
 
 
-def create_xz_header(check):
+def create_xz_header(check: int) -> bytes:
     if not 0 <= check <= 0xF:
         raise XZError("header check")
     # stream header
@@ -51,7 +52,7 @@ def create_xz_header(check):
     return HEADER_MAGIC + flags + crc32(flags)
 
 
-def create_xz_index_footer(check, records):
+def create_xz_index_footer(check: int, records: List[Tuple[int, int]]) -> bytes:
     if not 0 <= check <= 0xF:
         raise XZError("footer check")
     # index
@@ -70,20 +71,23 @@ def create_xz_index_footer(check, records):
     return index + footer
 
 
-def parse_xz_header(header):
+def parse_xz_header(header: bytes) -> int:
     if len(header) != 12:
         raise XZError("header length")
     if header[:6] != HEADER_MAGIC:
         raise XZError("header magic")
     if crc32(header[6:8]) != header[8:12]:
         raise XZError("header crc32")
-    flag_first_byte, check = unpack("<BB", header[6:8])
+    flag_first_byte, check = cast(
+        Tuple[int, int],
+        unpack("<BB", header[6:8]),
+    )
     if flag_first_byte or not 0 <= check <= 0xF:
         raise XZError("header flags")
     return check
 
 
-def parse_xz_index(index):
+def parse_xz_index(index: bytes) -> List[Tuple[int, int]]:
     if len(index) < 8 or len(index) % 4:
         raise XZError("index length")
     index = memoryview(index)
@@ -115,14 +119,17 @@ def parse_xz_index(index):
     return records
 
 
-def parse_xz_footer(footer):
+def parse_xz_footer(footer: bytes) -> Tuple[int, int]:
     if len(footer) != 12:
         raise XZError("footer length")
     if footer[10:12] != FOOTER_MAGIC:
         raise XZError("footer magic")
     if crc32(footer[4:10]) != footer[:4]:
         raise XZError("footer crc32")
-    backward_size, flag_first_byte, check = unpack("<IBB", footer[4:10])
+    backward_size, flag_first_byte, check = cast(
+        Tuple[int, int, int],
+        unpack("<IBB", footer[4:10]),
+    )
     backward_size = (backward_size + 1) * 4
     if flag_first_byte or not 0 <= check <= 0xF:
         raise XZError("footer flags")

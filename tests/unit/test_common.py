@@ -1,4 +1,5 @@
 from lzma import CHECK_CRC32, CHECK_CRC64, CHECK_NONE, CHECK_SHA256, is_check_supported
+from typing import List, Tuple
 
 import pytest
 
@@ -43,17 +44,17 @@ MBI_CASE = tuple(
 
 
 @pytest.mark.parametrize("value, data", MBI_CASE)
-def test_encode_mbi(value, data):
+def test_encode_mbi(value: int, data: str) -> None:
     assert encode_mbi(value) == bytes.fromhex(data)
 
 
 @pytest.mark.parametrize("value, data", MBI_CASE)
-def test_decode_mbi(value, data):
+def test_decode_mbi(value: int, data: str) -> None:
     assert decode_mbi(bytes.fromhex(data) + b"\xff\x00" * 10) == (len(data) // 2, value)
 
 
 @pytest.mark.parametrize("data", ("", "81828384"), ids=("empty", "truncated"))
-def test_decode_mbi_invalid(data):
+def test_decode_mbi_invalid(data: str) -> None:
     with pytest.raises(XZError) as exc_info:
         decode_mbi(bytes.fromhex(data))
     assert str(exc_info.value) == "invalid mbi"
@@ -63,7 +64,7 @@ def test_decode_mbi_invalid(data):
     "value, expected",
     ((0, 0), (1, 4), (2, 4), (3, 4), (4, 4), (5, 8), (6, 8), (7, 8), (8, 8)),
 )
-def test_round_up(value, expected):
+def test_round_up(value: int, expected: int) -> None:
     assert round_up(value) == expected
 
 
@@ -81,7 +82,7 @@ def test_round_up(value, expected):
         (8, ""),
     ),
 )
-def test_pad(value, padding):
+def test_pad(value: int, padding: str) -> None:
     assert pad(value) == bytes.fromhex(padding)
     data = b"B" * value
     data += bytes.fromhex(padding)
@@ -97,18 +98,18 @@ XZ_HEADER_CASES = (
 
 
 @pytest.mark.parametrize("check, data", XZ_HEADER_CASES)
-def test_create_xz_header(check, data):
+def test_create_xz_header(check: int, data: str) -> None:
     assert create_xz_header(check) == bytes.fromhex(data)
 
 
-def test_create_xz_header_invalid_check():
+def test_create_xz_header_invalid_check() -> None:
     with pytest.raises(XZError) as exc_info:
         create_xz_header(17)
     assert str(exc_info.value) == "header check"
 
 
 @pytest.mark.parametrize("check, data", XZ_HEADER_CASES)
-def test_parse_xz_header(check, data):
+def test_parse_xz_header(check: int, data: str) -> None:
     assert parse_xz_header(bytes.fromhex(data)) == check
 
 
@@ -123,7 +124,7 @@ def test_parse_xz_header(check, data):
         ("fd377a585a00100138301c7c", "header flags"),
     ),
 )
-def test_parse_xz_header_invalid(data, message):
+def test_parse_xz_header_invalid(data: str, message: str) -> None:
     with pytest.raises(XZError) as exc_info:
         parse_xz_header(bytes.fromhex(data))
     assert str(exc_info.value) == message
@@ -148,18 +149,18 @@ XZ_INDEX_CASES = (
 
 
 @pytest.mark.parametrize("records, data", XZ_INDEX_CASES)
-def test_create_xz_index(records, data):
+def test_create_xz_index(records: List[Tuple[int, int]], data: str) -> None:
     assert create_xz_index_footer(1, records)[:-12] == bytes.fromhex(data)
 
 
-def test_create_xz_index_invalid():
+def test_create_xz_index_invalid() -> None:
     with pytest.raises(XZError) as exc_info:
         create_xz_index_footer(1, [(73, 60), (0, 12), (56, 30)])
     assert str(exc_info.value) == "index record unpadded size"
 
 
 @pytest.mark.parametrize("records, data", XZ_INDEX_CASES)
-def test_parse_xz_index(records, data):
+def test_parse_xz_index(records: List[Tuple[int, int]], data: str) -> None:
     assert parse_xz_index(bytes.fromhex(data)) == records
 
 
@@ -176,7 +177,7 @@ def test_parse_xz_index(records, data):
         ("000180180400420096a658c0", "index padding"),
     ),
 )
-def test_parse_xz_index_invalid(data, message):
+def test_parse_xz_index_invalid(data: str, message: str) -> None:
     with pytest.raises(XZError) as exc_info:
         parse_xz_index(bytes.fromhex(data))
     assert str(exc_info.value) == message
@@ -192,18 +193,18 @@ XZ_FOOTER_CASES = (
 
 
 @pytest.mark.parametrize("check, data", XZ_FOOTER_CASES)
-def test_create_xz_footer(check, data):
+def test_create_xz_footer(check: int, data: str) -> None:
     assert create_xz_index_footer(check, [])[-12:] == bytes.fromhex(data)
 
 
-def test_create_xz_footer_invalid_check():
+def test_create_xz_footer_invalid_check() -> None:
     with pytest.raises(XZError) as exc_info:
         create_xz_index_footer(17, [])
     assert str(exc_info.value) == "footer check"
 
 
 @pytest.mark.parametrize("check, data", XZ_FOOTER_CASES)
-def test_parse_xz_footer(check, data):
+def test_parse_xz_footer(check: int, data: str) -> None:
     assert parse_xz_footer(bytes.fromhex(data)) == (check, 8)
 
 
@@ -218,11 +219,11 @@ def test_parse_xz_footer(check, data):
         ("c1505b47010000001001595a", "footer flags"),
     ),
 )
-def test_parse_xz_footer_invalid(data, message):
+def test_parse_xz_footer_invalid(data: str, message: str) -> None:
     with pytest.raises(XZError) as exc_info:
         parse_xz_footer(bytes.fromhex(data))
     assert str(exc_info.value) == message
 
 
-def test_default_check_supported():
+def test_default_check_supported() -> None:
     assert is_check_supported(DEFAULT_CHECK)

@@ -1,10 +1,11 @@
 from io import BytesIO
+from pathlib import Path
 from unittest.mock import Mock, call
 
 from xz.io import IOProxy
 
 
-def test_fileno(tmp_path):
+def test_fileno(tmp_path: Path) -> None:
     file_path = tmp_path / "file"
     file_path.write_bytes(b"abcd")
 
@@ -13,7 +14,7 @@ def test_fileno(tmp_path):
         assert obj.fileno() == fin.fileno()
 
 
-def test_seek():
+def test_seek() -> None:
     original = Mock()
     proxy = IOProxy(original, 4, 14)
 
@@ -24,7 +25,7 @@ def test_seek():
     assert not original.method_calls  # did not touch original
 
 
-def test_read():
+def test_read() -> None:
     original = BytesIO(b"xxxxabcdefghijyyyyy")
     proxy = IOProxy(original, 4, 14)
 
@@ -57,7 +58,7 @@ def test_read():
     assert original.tell() == 14
 
 
-def test_write():
+def test_write() -> None:
     original = BytesIO(b"xxxxabcdefghijyyyyy")
     with IOProxy(original, 4, 14) as proxy:
         proxy.seek(10)
@@ -69,7 +70,7 @@ def test_write():
         assert original.getvalue() == b"xxxxabcdefghijuvwUVWXYZ"
 
 
-def test_truncate():
+def test_truncate() -> None:
     original = Mock()
     with IOProxy(original, 4, 14) as proxy:
         assert proxy.truncate(5) == 5

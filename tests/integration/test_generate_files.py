@@ -1,11 +1,15 @@
 from hashlib import sha256
+from pathlib import Path
 import subprocess
+from typing import Any, Dict, Tuple
 
 import pytest
 
+_IntegrationCase = Tuple[Path, Dict[str, Any]]
+
 
 @pytest.mark.generate_integration_files
-def test(integration_case, data_pattern):
+def test(integration_case: _IntegrationCase, data_pattern: bytes) -> None:
     xz_path, metadata = integration_case
 
     expected_hash = sha256(xz_path.read_bytes())
