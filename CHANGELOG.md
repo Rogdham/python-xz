@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+[unreleased]: https://github.com/rogdham/bigxml/compare/v0.3.0...HEAD
+
+### :house: Internal
+
+- Add tests for CPython 3.10 and PyPy 3.8
+- Use CPython 3.10 for misc. tests
+
 ## [0.3.0] - 2021-11-07
 
 [0.3.0]: https://github.com/rogdham/python-xz/releases/tag/v0.3.0
