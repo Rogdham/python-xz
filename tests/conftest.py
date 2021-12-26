@@ -26,9 +26,10 @@ def pytest_addoption(parser: "Parser") -> None:
 def pytest_collection_modifyitems(config: "Config", items: "List[Item]") -> None:
     root = Path(__file__).parent.parent
     for item in items:
-        relative = Path(item.fspath).parent.relative_to(root)
-        mark = relative.name
-        item.add_marker(getattr(pytest.mark, mark))
+        if item.fspath:
+            relative = Path(item.fspath).parent.relative_to(root)
+            mark = relative.name
+            item.add_marker(getattr(pytest.mark, mark))
     if not config.getoption("--generate-integration-files"):
         skip_mark = pytest.mark.skip(
             reason="need --generate-integration-files option to run"

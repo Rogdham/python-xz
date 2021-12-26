@@ -14,6 +14,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Add tests for CPython 3.10 and PyPy 3.8
 - Use CPython 3.10 for misc. tests
 - Clarify which Python versions are supported in readme
+- Fix some linting issues found by latest versions of mypy/pylint
 
 ## [0.3.0] - 2021-11-07
 

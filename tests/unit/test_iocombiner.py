@@ -289,7 +289,7 @@ def test_truncate() -> None:
 
         # truncate at start
         combiner.truncate(0)
-        assert dict(combiner._fileobjs) == {}
+        assert not dict(combiner._fileobjs)
         assert not originals[0].method_calls
 
 
