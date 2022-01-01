@@ -80,6 +80,10 @@ def test_read_all(
         call.seek(90, SEEK_SET),
         call.read(17),
     ]
+    fileobj.method_calls.clear()
+
+    assert block.read() == b""
+    assert not fileobj.method_calls
 
 
 def test_read_seek_forward(

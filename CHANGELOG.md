@@ -11,6 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### :bug: Fixes
 
+- Free memory after a block is fully read
 - Typing: use `BinaryIO` instead of `IO[bytes]`
 
 ## [0.3.1] - 2021-12-26

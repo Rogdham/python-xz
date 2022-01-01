@@ -148,9 +148,14 @@ class XZBlock(IOAbstract):
 
         # read data
         try:
-            return self.operation.decompress(self._pos, size)
+            data = self.operation.decompress(self._pos, size)
         except LZMAError as ex:
             raise XZError(f"block: error while decompressing: {ex}") from ex
+
+        if self._pos + len(data) == self._length:
+            self.operation = None  # free memory
+
+        return data
 
     def writable(self) -> bool:
         return isinstance(self.operation, BlockWrite) or not self._length
@@ -174,7 +179,7 @@ class XZBlock(IOAbstract):
             self.unpadded_size, uncompressed_size = self.operation.finish()
             if uncompressed_size != self.uncompressed_size:
                 raise XZError("block: compressor uncompressed size")
-            self.operation = None
+            self.operation = None  # free memory
 
     def _truncate(self, size: int) -> None:
         # thanks to the writable method, we are sure that length is zero
