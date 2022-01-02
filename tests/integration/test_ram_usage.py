@@ -80,6 +80,28 @@ def test_read_linear(
             ), f"Consumes too much RAM (at {100 * xz_file.tell() / len(xz_file):.0f}%)"
 
 
+def test_partial_read_each_block(
+    # pylint: disable=redefined-outer-name
+    fileobj: BinaryIO,
+    ram_usage: Callable[[], int],
+) -> None:
+    one_block_memory: Optional[int] = None
+
+    with XZFile(fileobj) as xz_file:
+        for pos in xz_file.block_boundaries[1:]:
+            # read second-to last byte of each block
+            xz_file.seek(pos - 2)
+            xz_file.read(1)
+            if one_block_memory is None:
+                one_block_memory = ram_usage()
+            else:
+                assert (
+                    # default strategy is max 8 blocks, take 10 as error margin
+                    ram_usage()
+                    < one_block_memory * 10
+                ), f"Consumes too much RAM (at {100 * xz_file.tell() / len(xz_file):.0f}%)"
+
+
 def test_write(
     tmp_path: Path,
     # pylint: disable=redefined-outer-name

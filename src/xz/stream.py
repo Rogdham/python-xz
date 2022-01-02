@@ -12,7 +12,12 @@ from xz.common import (
     round_up,
 )
 from xz.io import IOCombiner, IOProxy
-from xz.typing import _LZMAFiltersType, _LZMAPresetType
+from xz.typing import (
+    Optional,
+    _BlockReadStrategyType,
+    _LZMAFiltersType,
+    _LZMAPresetType,
+)
 
 
 class XZStream(IOCombiner[XZBlock]):
@@ -22,12 +27,14 @@ class XZStream(IOCombiner[XZBlock]):
         check: int,
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
+        block_read_strategy: Optional[_BlockReadStrategyType] = None,
     ) -> None:
         super().__init__()
         self.fileobj = fileobj
         self._check = check
         self.preset = preset
         self.filters = filters
+        self.block_read_strategy = block_read_strategy
 
     @property
     def check(self) -> int:
@@ -44,7 +51,11 @@ class XZStream(IOCombiner[XZBlock]):
         )
 
     @classmethod
-    def parse(cls, fileobj: BinaryIO) -> "XZStream":
+    def parse(
+        cls,
+        fileobj: BinaryIO,
+        block_read_strategy: Optional[_BlockReadStrategyType] = None,
+    ) -> "XZStream":
         """Parse one XZ stream from a fileobj.
 
         fileobj position should be right at the end of the stream when calling
@@ -70,6 +81,7 @@ class XZStream(IOCombiner[XZBlock]):
                     check,
                     unpadded_size,
                     uncompressed_size,
+                    block_read_strategy=block_read_strategy,
                 )
             )
             block_start = block_end
@@ -84,7 +96,7 @@ class XZStream(IOCombiner[XZBlock]):
         header_start_pos = fileobj.seek(-12, SEEK_CUR)
 
         stream_fileobj = IOProxy(fileobj, header_start_pos, footer_end_pos)
-        stream = cls(stream_fileobj, check)
+        stream = cls(stream_fileobj, check, block_read_strategy=block_read_strategy)
         for block in blocks:
             stream._append(block)
         return stream
@@ -102,6 +114,7 @@ class XZStream(IOCombiner[XZBlock]):
             0,
             self.preset,
             self.filters,
+            self.block_read_strategy,
         )
 
     def _write_before(self) -> None:

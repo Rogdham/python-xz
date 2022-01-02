@@ -10,7 +10,13 @@ from xz.common import (
     parse_xz_index,
 )
 from xz.io import IOAbstract, IOCombiner, IOStatic
-from xz.typing import _LZMAFiltersType, _LZMAPresetType
+from xz.strategy import KeepBlockReadStrategy
+from xz.typing import (
+    Optional,
+    _BlockReadStrategyType,
+    _LZMAFiltersType,
+    _LZMAPresetType,
+)
 
 
 class BlockRead:
@@ -122,12 +128,14 @@ class XZBlock(IOAbstract):
         uncompressed_size: int,
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
+        block_read_strategy: Optional[_BlockReadStrategyType] = None,
     ):
         super().__init__(uncompressed_size)
         self.fileobj = fileobj
         self.check = check
         self.preset = preset
         self.filters = filters
+        self.block_read_strategy = block_read_strategy or KeepBlockReadStrategy()
         self.unpadded_size = unpadded_size
         self.operation: Union[BlockRead, BlockWrite, None] = None
 
@@ -139,6 +147,8 @@ class XZBlock(IOAbstract):
         # enforce read mode
         if not isinstance(self.operation, BlockRead):
             self._write_end()
+            self.clear()
+            self.block_read_strategy.on_create(self)
             self.operation = BlockRead(
                 self.fileobj,
                 self.check,
@@ -147,13 +157,14 @@ class XZBlock(IOAbstract):
             )
 
         # read data
+        self.block_read_strategy.on_read(self)
         try:
             data = self.operation.decompress(self._pos, size)
         except LZMAError as ex:
             raise XZError(f"block: error while decompressing: {ex}") from ex
 
         if self._pos + len(data) == self._length:
-            self.operation = None  # free memory
+            self.clear()
 
         return data
 
@@ -163,6 +174,7 @@ class XZBlock(IOAbstract):
     def _write(self, data: bytes) -> int:
         # enforce write mode
         if not isinstance(self.operation, BlockWrite):
+            self.clear()
             self.operation = BlockWrite(
                 self.fileobj,
                 self.check,
@@ -179,10 +191,15 @@ class XZBlock(IOAbstract):
             self.unpadded_size, uncompressed_size = self.operation.finish()
             if uncompressed_size != self.uncompressed_size:
                 raise XZError("block: compressor uncompressed size")
-            self.operation = None  # free memory
+            self.clear()
 
     def _truncate(self, size: int) -> None:
         # thanks to the writable method, we are sure that length is zero
         # so we don't need to handle the case of truncating in middle of the block
         self.seek(size)
         self.write(b"")
+
+    def clear(self) -> None:
+        if isinstance(self.operation, BlockRead):
+            self.block_read_strategy.on_delete(self)
+        self.operation = None  # free memory

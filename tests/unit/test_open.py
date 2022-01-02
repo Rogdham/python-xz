@@ -2,10 +2,12 @@ from io import BytesIO
 import lzma
 from pathlib import Path
 from typing import List, Optional
+from unittest.mock import Mock
 
 import pytest
 
 from xz.open import xz_open
+from xz.strategy import RollingBlockReadStrategy
 
 # a stream with two blocks (lengths: 10, 3)
 # one UTF8 character is between the two blocks
@@ -478,3 +480,20 @@ def test_mode_invalid(mode: str) -> None:
     with pytest.raises(ValueError) as exc_info:
         xz_open(fileobj, mode)
     assert str(exc_info.value) == f"Invalid mode: {mode}"
+
+
+@pytest.mark.parametrize("mode", ("r", "rt"))
+def test_default_strategy(mode: str) -> None:
+    fileobj = BytesIO(STREAM_BYTES)
+
+    with xz_open(fileobj, mode) as xzfile:
+        assert isinstance(xzfile.block_read_strategy, RollingBlockReadStrategy)
+
+
+@pytest.mark.parametrize("mode", ("r", "rt"))
+def test_custom_strategy(mode: str) -> None:
+    fileobj = BytesIO(STREAM_BYTES)
+    strategy = Mock()
+
+    with xz_open(fileobj, mode, block_read_strategy=strategy) as xzfile:
+        assert xzfile.block_read_strategy == strategy

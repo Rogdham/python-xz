@@ -1,13 +1,14 @@
-from io import SEEK_END, BytesIO, UnsupportedOperation
+from io import SEEK_END, SEEK_SET, BytesIO, UnsupportedOperation
 import os
 from pathlib import Path
-from typing import Callable, Tuple, Union, cast
-from unittest.mock import Mock
+from typing import Callable, Optional, Tuple, Union, cast
+from unittest.mock import Mock, call
 
 import pytest
 
 from xz.common import XZError
 from xz.file import XZFile
+from xz.strategy import RollingBlockReadStrategy
 
 FILE_BYTES = bytes.fromhex(
     # stream 1: two blocks (lengths: 100, 90)
@@ -37,6 +38,22 @@ FILE_BYTES = bytes.fromhex(
     "0000000000000000000000000000000000000000000000000000000000000000"
     "0000000000000000000000000000000000000000000000000000000000000000"
     "000000000000000000000000"
+)
+
+FILE_BYTES_MANY_SMALL_BLOCKS = bytes.fromhex(
+    "fd377a585a000004e6d6b446"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "0200210116000000742fe5a3010009303132333435363738390000001e73127f2ccf6527"
+    "000a220a220a220a220a220a220a220a220a220a220a0000efe133df"
+    "a786f660060000000004595a"
 )
 
 
@@ -214,6 +231,96 @@ def test_read_no_stream(data: bytes) -> None:
     with pytest.raises(XZError) as exc_info:
         XZFile(filename)
     assert str(exc_info.value) == "file: no streams"
+
+
+def test_read_strategy_calls() -> None:
+    fileobj = BytesIO(FILE_BYTES_MANY_SMALL_BLOCKS)
+
+    strategy = Mock()
+
+    with XZFile(fileobj, block_read_strategy=strategy) as xz_file:
+        blocks = [
+            block
+            # pylint: disable=protected-access
+            for stream in xz_file._fileobjs.values()
+            for block in stream._fileobjs.values()
+        ]
+
+        # read one byte of each block
+        for i in range(10):
+            xz_file.seek(i * 10 + 2)
+            assert xz_file.read(1) == b"2"
+            assert strategy.method_calls == [
+                call.on_create(blocks[i]),
+                call.on_read(blocks[i]),
+            ]
+            strategy.method_calls.clear()
+
+        # read all
+        xz_file.seek(0)
+        xz_file.read()
+        assert strategy.method_calls == [
+            call_item
+            for i in range(10)
+            for call_item in (call.on_read(blocks[i]), call.on_delete(blocks[i]))
+        ]
+
+
+@pytest.mark.parametrize("max_block_read_nb", (None, 1, 2, 7, 100))
+def test_read_default_strategy(max_block_read_nb: Optional[int]) -> None:
+    fileobj = Mock(wraps=BytesIO(FILE_BYTES_MANY_SMALL_BLOCKS))
+
+    max_block_read_nb_ = 8 if max_block_read_nb is None else max_block_read_nb
+
+    with XZFile(
+        fileobj,
+        block_read_strategy=None
+        if max_block_read_nb is None
+        else RollingBlockReadStrategy(max_block_read_nb),
+    ) as xz_file:
+        fileobj.method_calls.clear()
+
+        order = list(range(10))
+
+        # read one byte of each block
+        for i in order:
+            xz_file.seek(i * 10 + 2)
+            assert xz_file.read(1) == b"2"
+            assert fileobj.method_calls == [
+                # read whole block at once
+                call.seek(12 + 36 * i, SEEK_SET),
+                call.read(36),
+            ], i
+            fileobj.method_calls.clear()
+
+        # read next byte of each block in reverse order
+        order.reverse()
+        for i in order:
+            xz_file.seek(i * 10 + 3)
+            assert xz_file.read(1) == b"3"
+            if i < 10 - (max_block_read_nb_):
+                # decompressor has been cleared, read again
+                assert fileobj.method_calls == [
+                    # read whole block at once
+                    call.seek(12 + 36 * i, SEEK_SET),
+                    call.read(36),
+                ], i
+                fileobj.method_calls.clear()
+            else:
+                # data cached in decompressor, no need to read
+                assert not fileobj.method_calls
+
+        if max_block_read_nb_ > 1:
+            # test that alternating between two blocks is fast
+            for i in (0, 9):
+                xz_file.seek(i * 10 + 4)
+                assert xz_file.read(1) == b"4"
+            fileobj.method_calls.clear()
+            for i in (0, 9):
+                xz_file.seek(i * 10 + 5)
+                assert xz_file.read(1) == b"5"
+                # data cached in decompressor, no need to read
+                assert not fileobj.method_calls
 
 
 #

@@ -37,6 +37,7 @@ except ImportError:  # pragma: no cover
 from xz.common import XZError
 from xz.file import XZFile
 from xz.open import xz_open
+from xz.strategy import KeepBlockReadStrategy, RollingBlockReadStrategy
 
 # pylint: disable=redefined-builtin
 open = xz_open
@@ -45,6 +46,8 @@ open = xz_open
 
 __all__ = (
     "__version__",
+    "KeepBlockReadStrategy",
+    "RollingBlockReadStrategy",
     "XZError",
     "XZFile",
     "open",

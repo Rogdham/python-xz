@@ -5,8 +5,14 @@ import warnings
 
 from xz.common import DEFAULT_CHECK, XZError
 from xz.io import IOCombiner, IOProxy
+from xz.strategy import RollingBlockReadStrategy
 from xz.stream import XZStream
-from xz.typing import _LZMAFilenameType, _LZMAFiltersType, _LZMAPresetType
+from xz.typing import (
+    _BlockReadStrategyType,
+    _LZMAFilenameType,
+    _LZMAFiltersType,
+    _LZMAPresetType,
+)
 from xz.utils import parse_mode, proxy_property
 
 
@@ -28,7 +34,8 @@ class XZFile(IOCombiner[XZStream]):
         *,
         check: int = -1,
         preset: _LZMAPresetType = None,
-        filters: _LZMAFiltersType = None
+        filters: _LZMAFiltersType = None,
+        block_read_strategy: Optional[_BlockReadStrategyType] = None,
     ) -> None:
         """Open an XZ file in binary mode.
 
@@ -52,6 +59,11 @@ class XZFile(IOCombiner[XZStream]):
 
         For more information about the check/preset/filters arguments,
         refer to the documentation of the lzma module.
+
+        The block_read_strategy argument allows to specify a strategy
+        for freeing block readers, and implement a different tradeoff
+        between memory consumption and read speed when alternating reads
+        between several blocks.
         """
         self._close_fileobj = False
         self._close_check_empty = False
@@ -59,6 +71,14 @@ class XZFile(IOCombiner[XZStream]):
         super().__init__()
 
         self.mode, self._readable, self._writable = parse_mode(mode)
+
+        # create strategy
+        if block_read_strategy is None:
+            self.block_read_strategy: _BlockReadStrategyType = (
+                RollingBlockReadStrategy()
+            )
+        else:
+            self.block_read_strategy = block_read_strategy
 
         # get fileobj
         if isinstance(filename, (str, bytes, os.PathLike)):
@@ -143,7 +163,7 @@ class XZFile(IOCombiner[XZStream]):
                 raise XZError("file: invalid size")
             self.fileobj.seek(-4, SEEK_CUR)
             if any(self.fileobj.read(4)):
-                streams.append(XZStream.parse(self.fileobj))
+                streams.append(XZStream.parse(self.fileobj, self.block_read_strategy))
             else:
                 self.fileobj.seek(-4, SEEK_CUR)  # stream padding
 
@@ -161,6 +181,7 @@ class XZFile(IOCombiner[XZStream]):
             self.check,
             self.preset,
             self.filters,
+            self.block_read_strategy,
         )
 
     def change_stream(self) -> None:

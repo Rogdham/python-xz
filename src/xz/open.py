@@ -4,6 +4,7 @@ from typing import BinaryIO, List, Optional, Union, cast, overload
 
 from xz.file import XZFile
 from xz.typing import (
+    _BlockReadStrategyType,
     _LZMAFilenameType,
     _LZMAFiltersType,
     _LZMAPresetType,
@@ -22,6 +23,7 @@ class _XZFileText(TextIOWrapper):
         check: int = -1,
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
+        block_read_strategy: Optional[_BlockReadStrategyType] = None,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
         newline: Optional[str] = None,
@@ -32,6 +34,7 @@ class _XZFileText(TextIOWrapper):
             check=check,
             preset=preset,
             filters=filters,
+            block_read_strategy=block_read_strategy,
         )
         super().__init__(
             cast(BinaryIO, self.xz_file),
@@ -45,6 +48,9 @@ class _XZFileText(TextIOWrapper):
     filters: _LZMAFiltersType = proxy_property("filters", "xz_file")
     stream_boundaries: List[int] = proxy_property("stream_boundaries", "xz_file")
     block_boundaries: List[int] = proxy_property("block_boundaries", "xz_file")
+    block_read_strategy: _BlockReadStrategyType = proxy_property(
+        "block_read_strategy", "xz_file"
+    )
 
     @wraps(XZFile.change_stream)
     def change_stream(self) -> None:
@@ -66,6 +72,7 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
+    block_read_strategy: Optional[_BlockReadStrategyType] = None,
     # text-mode kwargs
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
@@ -83,6 +90,7 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
+    block_read_strategy: Optional[_BlockReadStrategyType] = None,
     # text-mode kwargs
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
@@ -100,6 +108,7 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
+    block_read_strategy: Optional[_BlockReadStrategyType] = None,
     # text-mode kwargs
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
@@ -116,6 +125,7 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
+    block_read_strategy: Optional[_BlockReadStrategyType] = None,
     # text-mode kwargs
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
@@ -145,6 +155,7 @@ def xz_open(
             check=check,
             preset=preset,
             filters=filters,
+            block_read_strategy=block_read_strategy,
             encoding=encoding,
             errors=errors,
             newline=newline,
@@ -163,4 +174,5 @@ def xz_open(
         check=check,
         preset=preset,
         filters=filters,
+        block_read_strategy=block_read_strategy,
     )

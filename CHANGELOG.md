@@ -9,9 +9,19 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 [unreleased]: https://github.com/rogdham/bigxml/compare/v0.3.1...HEAD
 
+### :rocket: Added
+
+- Advanced users may use the new `block_read_strategy` argument of `XZFile`/`xz.open` to
+  customize the strategy for freeing block readers, and implement a different tradeoff
+  between memory consumption and read speed when alternating reads between several
+  blocks; the following strategies are provided: `RollingBlockReadStrategy` and
+  `KeepBlockReadStrategy`
+
 ### :bug: Fixes
 
 - Free memory after a block is fully read
+- Free memory of LZMA decompressors when many blocks are partially read; this is a
+  tradeoff defaulting to keeping the last 8 LZMA decompressors used
 - Typing: use `BinaryIO` instead of `IO[bytes]`
 
 ## [0.3.1] - 2021-12-26

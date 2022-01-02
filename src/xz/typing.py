@@ -1,6 +1,6 @@
 from os import PathLike
 import sys
-from typing import Any, BinaryIO, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Mapping, Optional, Sequence, Union
 
 if sys.version_info >= (3, 9):  # pragma: no cover
     _LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
@@ -12,10 +12,22 @@ else:  # pragma: no cover
     # we could require typing-extensions package but that's hardly an improvement
 
     class LiteralKlass:
-        def __getitem__(self, items):
+        def __getitem__(self, items: Any) -> str:
             return f"Literal{list(items)}"
 
     Literal = LiteralKlass()
+
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+    from typing import Protocol
+else:  # pragma: no cover
+    # ducktype Protocol
+    # we could require typing-extensions package instead
+    Protocol = object
+
+if TYPE_CHECKING:  # pragma: no cover
+    # avoid circular dependency
+    from xz.block import XZBlock
 
 
 _LZMAPresetType = Optional[int]
@@ -29,3 +41,14 @@ _XZModesBinaryType = Literal[
     "r", "r+", "w", "w+", "x", "x+", "rb", "rb+", "wb", "wb+", "xb", "xb+"
 ]
 _XZModesTextType = Literal["rt", "rt+", "wt", "wt+", "xt", "xt+"]
+
+
+class _BlockReadStrategyType(Protocol):
+    def on_create(self, block: "XZBlock") -> None:
+        ...  # pragma: no cover
+
+    def on_delete(self, block: "XZBlock") -> None:
+        ...  # pragma: no cover
+
+    def on_read(self, block: "XZBlock") -> None:
+        ...  # pragma: no cover
