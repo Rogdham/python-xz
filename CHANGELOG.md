@@ -24,6 +24,10 @@ adheres to [Semantic Versioning](https://semver.org/).
   tradeoff defaulting to keeping the last 8 LZMA decompressors used
 - Typing: use `BinaryIO` instead of `IO[bytes]`
 
+### :house: Internal
+
+- Minor improvements in some docstrings
+
 ## [0.3.1] - 2021-12-26
 
 [0.3.1]: https://github.com/rogdham/python-xz/releases/tag/v0.3.1

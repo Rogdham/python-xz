@@ -19,7 +19,6 @@ class FloorDict(_MutableMapping[int, T]):
     Differences from dict:
      - keys must be int
      - obj[key] will return the value whose key is the closest one which is lower or equal to key
-     - obj[key, True] will return the real index of the value in the form (index, obj[key])
     """
 
     def __init__(self) -> None:
@@ -114,7 +113,7 @@ def proxy_property(attribute: str, proxy: str) -> Any:
 
     If attribute is "a" and proxy is "b", it proxies to ".a.b".
 
-    If the proxy is None, then use a local value instead,
+    If the proxy value is None, then use a local value instead,
     which acts as a temporary storage in the meanwhile.
     """
 
