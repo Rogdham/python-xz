@@ -26,6 +26,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### :house: Internal
 
+- Specify the Python versions required in package metadata
 - Test the `mode` attribute of objects returned by `xz.open`/`XZFile`
 - Minor improvements in some docstrings
 
