@@ -100,6 +100,7 @@ def test_required_abilities(mode: str, ability: str, init_has_ability: bool) -> 
     else:
         with XZFile(fileobj, mode=mode) as xzfile:
             assert getattr(xzfile, ability)() == expected_ability
+            assert xzfile.mode == mode.replace("b", "")
 
 
 #

@@ -70,7 +70,7 @@ class XZFile(IOCombiner[XZStream]):
 
         super().__init__()
 
-        self.mode, self._readable, self._writable = parse_mode(mode)
+        self._mode, self._readable, self._writable = parse_mode(mode)
 
         # create strategy
         if block_read_strategy is None:
@@ -83,7 +83,7 @@ class XZFile(IOCombiner[XZStream]):
         # get fileobj
         if isinstance(filename, (str, bytes, os.PathLike)):
             # pylint: disable=consider-using-with, unspecified-encoding
-            self.fileobj = cast(BinaryIO, open(filename, self.mode + "b"))
+            self.fileobj = cast(BinaryIO, open(filename, self._mode + "b"))
             self._close_fileobj = True
         elif hasattr(filename, "read"):  # weak check but better than nothing
             self.fileobj = filename
@@ -99,18 +99,18 @@ class XZFile(IOCombiner[XZStream]):
             raise ValueError("filename is not writable")
 
         # init
-        if self.mode[0] in "wx":
+        if self._mode[0] in "wx":
             self.fileobj.truncate(0)
         if self._readable:
             self._init_parse()
-        if self.mode[0] == "r" and not self._fileobjs:
+        if self._mode[0] == "r" and not self._fileobjs:
             raise XZError("file: no streams")
 
         self.check = check if check != -1 else DEFAULT_CHECK
         self.preset = preset
         self.filters = filters
 
-        self._close_check_empty = self.mode[0] != "r"
+        self._close_check_empty = self._mode[0] != "r"
 
     @property
     def _last_stream(self) -> Optional[XZStream]:
@@ -121,6 +121,10 @@ class XZFile(IOCombiner[XZStream]):
 
     preset: _LZMAPresetType = proxy_property("preset", "_last_stream")
     filters: _LZMAFiltersType = proxy_property("filters", "_last_stream")
+
+    @property
+    def mode(self) -> str:
+        return self._mode
 
     def readable(self) -> bool:
         return self._readable

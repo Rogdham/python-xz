@@ -52,6 +52,10 @@ class _XZFileText(TextIOWrapper):
         "block_read_strategy", "xz_file"
     )
 
+    @property
+    def mode(self) -> str:
+        return f"{self.xz_file.mode}t"
+
     @wraps(XZFile.change_stream)
     def change_stream(self) -> None:
         self.flush()

@@ -29,6 +29,7 @@ def test_mode_rb() -> None:
     fileobj = BytesIO(STREAM_BYTES)
 
     with xz_open(fileobj, "rb") as xzfile:
+        assert xzfile.mode == "r"
         assert len(xzfile) == 13
         assert xzfile.stream_boundaries == [0]
         assert xzfile.block_boundaries == [0, 10]
@@ -43,6 +44,7 @@ def test_mode_rt() -> None:
     fileobj = BytesIO(STREAM_BYTES)
 
     with xz_open(fileobj, "rt") as xzfile:
+        assert xzfile.mode == "rt"
         assert xzfile.stream_boundaries == [0]
         assert xzfile.block_boundaries == [0, 10]
 
@@ -188,6 +190,7 @@ def test_mode_wb_check() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wb", check=1) as xzfile:
+        assert xzfile.mode == "w"
         xzfile.write(b"\xce\xb1")
         xzfile.change_stream()
         xzfile.check = 4
@@ -204,6 +207,7 @@ def test_mode_wt_check() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", check=1) as xzfile:
+        assert xzfile.mode == "wt"
         xzfile.write("α")
         xzfile.change_stream()
         xzfile.check = 4
