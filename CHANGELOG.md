@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.0] - 2022-01-09
 
-[unreleased]: https://github.com/rogdham/bigxml/compare/v0.3.1...HEAD
+[0.4.0]: https://github.com/rogdham/python-xz/releases/tag/v0.4.0
 
 ### :rocket: Added
 
