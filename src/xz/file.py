@@ -1,6 +1,6 @@
 from io import SEEK_CUR, SEEK_END
 import os
-from typing import IO, List, Optional
+from typing import BinaryIO, List, Optional, cast
 import warnings
 
 from xz.common import DEFAULT_CHECK, XZError
@@ -63,7 +63,7 @@ class XZFile(IOCombiner[XZStream]):
         # get fileobj
         if isinstance(filename, (str, bytes, os.PathLike)):
             # pylint: disable=consider-using-with, unspecified-encoding
-            self.fileobj: IO[bytes] = open(filename, self.mode + "b")
+            self.fileobj = cast(BinaryIO, open(filename, self.mode + "b"))
             self._close_fileobj = True
         elif hasattr(filename, "read"):  # weak check but better than nothing
             self.fileobj = filename

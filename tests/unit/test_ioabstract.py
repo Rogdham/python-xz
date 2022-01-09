@@ -1,6 +1,6 @@
 from io import DEFAULT_BUFFER_SIZE, UnsupportedOperation
 from pathlib import Path
-from typing import IO
+from typing import BinaryIO
 from unittest.mock import Mock, call
 
 import pytest
@@ -27,7 +27,7 @@ def test_fileno(tmp_path: Path) -> None:
     file_path.write_bytes(b"abcd")
 
     class Impl(IOAbstract):
-        def __init__(self, fileobj: IO[bytes]) -> None:
+        def __init__(self, fileobj: BinaryIO) -> None:
             super().__init__(10)
             self.fileobj = fileobj
 

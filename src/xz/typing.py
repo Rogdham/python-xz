@@ -1,12 +1,12 @@
 from os import PathLike
 import sys
-from typing import IO, Any, Mapping, Optional, Sequence, Union
+from typing import Any, BinaryIO, Mapping, Optional, Sequence, Union
 
 if sys.version_info >= (3, 9):  # pragma: no cover
-    _LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], IO[bytes]]
+    _LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
     from typing import Literal
 else:  # pragma: no cover
-    _LZMAFilenameType = Union[str, bytes, PathLike, IO[bytes]]
+    _LZMAFilenameType = Union[str, bytes, PathLike, BinaryIO]
 
     # ducktype Literal (NB we cannot use __class_getitem__ on Python 3.6)
     # we could require typing-extensions package but that's hardly an improvement

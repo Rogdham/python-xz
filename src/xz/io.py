@@ -6,7 +6,7 @@ from io import (
     IOBase,
     UnsupportedOperation,
 )
-from typing import IO, Generic, Optional, TypeVar, Union, cast
+from typing import BinaryIO, Generic, Optional, TypeVar, Union, cast
 
 from xz.utils import FloorDict
 
@@ -14,9 +14,9 @@ from xz.utils import FloorDict
 # Typing note
 #
 # The consensus seems to favour IO instead of IOBase for typing.
-# However we cannot subclass IO[bytes] in IOAbstract as it conflicts with IOBase.
+# However we cannot subclass BinaryIO in IOAbstract as it conflicts with IOBase.
 #
-# As a result, some casting or unions between IOAbstract and IO[bytes] may be required internally.
+# As a result, some casting or unions between the two types may be required internally.
 #
 
 
@@ -41,7 +41,7 @@ class IOAbstract(IOBase):
 
     def fileno(self) -> int:
         try:
-            return cast(IO[bytes], self.fileobj).fileno()  # type: ignore[attr-defined]
+            return cast(BinaryIO, self.fileobj).fileno()  # type: ignore[attr-defined]
         except AttributeError:
             raise UnsupportedOperation("fileno")  # pylint: disable=raise-missing-from
 
@@ -245,7 +245,7 @@ class IOStatic(IOAbstract):
 class IOProxy(IOAbstract):
     def __init__(
         self,
-        fileobj: Union[IO[bytes], IOAbstract],  # see typing note on top of this file
+        fileobj: Union[BinaryIO, IOBase],  # see typing note on top of this file
         start: int,
         end: int,
     ) -> None:

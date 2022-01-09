@@ -1,6 +1,6 @@
 from functools import wraps
 from io import TextIOWrapper
-from typing import IO, List, Optional, Union, cast, overload
+from typing import BinaryIO, List, Optional, Union, cast, overload
 
 from xz.file import XZFile
 from xz.typing import (
@@ -34,7 +34,7 @@ class _XZFileText(TextIOWrapper):
             filters=filters,
         )
         super().__init__(
-            cast(IO[bytes], self.xz_file),
+            cast(BinaryIO, self.xz_file),
             encoding,
             errors,
             newline,

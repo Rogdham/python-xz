@@ -1,5 +1,5 @@
 from io import SEEK_CUR
-from typing import IO, List
+from typing import BinaryIO, List
 
 from xz.block import XZBlock
 from xz.common import (
@@ -44,7 +44,7 @@ class XZStream(IOCombiner[XZBlock]):
         )
 
     @classmethod
-    def parse(cls, fileobj: IO[bytes]) -> "XZStream":
+    def parse(cls, fileobj: BinaryIO) -> "XZStream":
         """Parse one XZ stream from a fileobj.
 
         fileobj position should be right at the end of the stream when calling
