@@ -13,7 +13,7 @@ from xz.typing import (
     _LZMAFiltersType,
     _LZMAPresetType,
 )
-from xz.utils import parse_mode, proxy_property
+from xz.utils import AttrProxy, parse_mode
 
 
 class XZFile(IOCombiner[XZStream]):
@@ -119,8 +119,8 @@ class XZFile(IOCombiner[XZStream]):
         except KeyError:
             return None
 
-    preset: _LZMAPresetType = proxy_property("preset", "_last_stream")
-    filters: _LZMAFiltersType = proxy_property("filters", "_last_stream")
+    preset = AttrProxy[_LZMAPresetType]("_last_stream")
+    filters = AttrProxy[_LZMAFiltersType]("_last_stream")
 
     @property
     def mode(self) -> str:

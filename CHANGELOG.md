@@ -12,6 +12,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 ### :house: Internal
 
 - Necessary code changes following dev dependency update: black
+- Refactor a descriptor following PEP 487
+
+## [0.4.0] - 2022-01-09
 
 [0.4.0]: https://github.com/rogdham/python-xz/releases/tag/v0.4.0
 

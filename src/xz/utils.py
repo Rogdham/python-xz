@@ -1,9 +1,9 @@
 from bisect import bisect_right, insort_right
 from collections.abc import MutableMapping
 import sys
-from typing import Any, Dict, Iterator, List
+from typing import Any, Dict, Generic, Iterator, List
 from typing import MutableMapping as TypingMutableMapping
-from typing import Tuple, TypeVar
+from typing import Tuple, TypeVar, cast
 
 T = TypeVar("T")
 
@@ -98,47 +98,56 @@ def parse_mode(mode: str) -> Tuple[str, bool, bool]:
     return (mode_base, mode_base == "r", mode_base != "r")
 
 
-def proxy_property(attribute: str, proxy: str) -> Any:
-    """Create a property that is a proxy to an attribute of an attribute.
+class AttrProxy(Generic[T]):
+    """Create a descriptor that is a proxy to the same attribute of an attribute.
 
     Example:
 
         class Foo:
             proxy = Something()
-            bar = proxy_property("baz", "proxy")
+            bar = AttrProxy("proxy")
 
         foo = Foo()
 
-        then foo.bar would be proxied to foo.proxy.baz
-
-    If attribute is "a" and proxy is "b", it proxies to ".a.b".
+        then foo.bar would be proxied to foo.proxy.bar
 
     If the proxy value is None, then use a local value instead,
     which acts as a temporary storage in the meanwhile.
     """
 
-    #
     # Typing note
     #
-    # There is no real way to type properties returned by a function,
-    # not to speak about the arbitrary getattr/setattr.
+    # There is no typing enforced to make sure that the proxy attribute
+    # on the attribute exists and is of type T.
+    # We just trust that the user-provided T is right.
+    #
     # This explains the use of Any everywhere
     #
 
-    not_proxied_value: Any = None
+    attribute: str
+    not_proxied_value: T
 
-    def getter(obj: Any) -> Any:
-        dest = getattr(obj, proxy)
-        if dest is None:
-            return not_proxied_value
-        return getattr(dest, attribute)
+    def __init__(self, proxy: str) -> None:
+        self.proxy = proxy
 
-    def setter(obj: Any, value: Any) -> None:
-        dest = getattr(obj, proxy)
+    def __set_name__(self, klass: Any, name: str) -> None:
+        self.attribute = name
+
+    def __get__(self, instance: Any, klass: Any) -> T:
+        dest = getattr(instance, self.proxy)
         if dest is None:
-            nonlocal not_proxied_value
-            not_proxied_value = value
+            try:
+                return self.not_proxied_value
+            except AttributeError as ex:
+                raise AttributeError(
+                    f"'{klass.__name__}' object has not attribute '{self.attribute}'"
+                    f" until its attribute '{self.proxy}' is defined"
+                ) from ex
+        return cast(T, getattr(dest, self.attribute))
+
+    def __set__(self, instance: Any, value: T) -> None:
+        dest = getattr(instance, self.proxy)
+        if dest is None:
+            self.not_proxied_value = value
         else:
-            setattr(dest, attribute, value)
-
-    return property(fget=getter, fset=setter)
+            setattr(dest, self.attribute, value)

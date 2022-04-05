@@ -11,7 +11,7 @@ from xz.typing import (
     _XZModesBinaryType,
     _XZModesTextType,
 )
-from xz.utils import proxy_property
+from xz.utils import AttrProxy
 
 
 class _XZFileText(TextIOWrapper):
@@ -43,14 +43,12 @@ class _XZFileText(TextIOWrapper):
             newline,
         )
 
-    check: int = proxy_property("check", "xz_file")
-    preset: _LZMAPresetType = proxy_property("preset", "xz_file")
-    filters: _LZMAFiltersType = proxy_property("filters", "xz_file")
-    stream_boundaries: List[int] = proxy_property("stream_boundaries", "xz_file")
-    block_boundaries: List[int] = proxy_property("block_boundaries", "xz_file")
-    block_read_strategy: _BlockReadStrategyType = proxy_property(
-        "block_read_strategy", "xz_file"
-    )
+    check = AttrProxy[int]("xz_file")
+    preset = AttrProxy[_LZMAPresetType]("xz_file")
+    filters = AttrProxy[_LZMAFiltersType]("xz_file")
+    stream_boundaries = AttrProxy[List[int]]("xz_file")
+    block_boundaries = AttrProxy[List[int]]("xz_file")
+    block_read_strategy = AttrProxy[_BlockReadStrategyType]("xz_file")
 
     @property
     def mode(self) -> str:
