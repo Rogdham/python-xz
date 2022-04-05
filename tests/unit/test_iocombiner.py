@@ -247,7 +247,6 @@ def test_truncate() -> None:
     ]
 
     with IOCombiner(*originals) as combiner:
-
         # truncate between two boundaries
         combiner.truncate(17)
         assert originals[3].method_calls == [call.truncate(7)]

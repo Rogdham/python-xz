@@ -246,7 +246,6 @@ def test_write_full(write_partial: bool) -> None:
             return len(data)
 
     with Impl() as obj:
-
         # write before end
         obj.seek(5)
         with pytest.raises(ValueError) as exc_info:

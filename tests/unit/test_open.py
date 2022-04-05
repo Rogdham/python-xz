@@ -433,7 +433,7 @@ def test_mode_wt_encoding(encoding: str, data: str) -> None:
         ),
         pytest.param(
             "backslashreplace",
-            br"en\udc01co\udc02di\udc03ng",
+            rb"en\udc01co\udc02di\udc03ng",
             id="backslashreplace",
         ),
     ),
