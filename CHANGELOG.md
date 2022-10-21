@@ -13,7 +13,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 - Necessary code changes following dev dependency update: black, pytest
 - Refactor a descriptor following PEP 487
-- Add tests for CPython 3.11
+- Add tests for CPython 3.11 and PyPy 3.9
 - Use CPython 3.11 for misc. tests
 
 ## [0.4.0] - 2022-01-09
