@@ -1,20 +1,11 @@
 from itertools import chain, product
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Iterator, Tuple
+from typing import Callable, Iterator, List, Tuple
 
 import pytest
 
-if TYPE_CHECKING:
-    from typing import List
 
-    # see https://github.com/pytest-dev/pytest/issues/7469
-    # for pytest exporting from pytest and not _pytest
-    from _pytest.config import Config
-    from _pytest.config.argparsing import Parser
-    from _pytest.nodes import Item
-
-
-def pytest_addoption(parser: "Parser") -> None:
+def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--generate-integration-files",
         action="store_true",
@@ -23,7 +14,9 @@ def pytest_addoption(parser: "Parser") -> None:
     )
 
 
-def pytest_collection_modifyitems(config: "Config", items: "List[Item]") -> None:
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: List[pytest.Item]
+) -> None:
     root = Path(__file__).parent.parent
     for item in items:
         if item.fspath:
