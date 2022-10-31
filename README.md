@@ -52,7 +52,7 @@ would read all previous blocks for nothing).
 2. Reading from a position will read the file from the beginning of the block
 3. Block positions available with the `block_boundaries` attribute
 4. Stream positions available with the `stream_boundaries` attribute
-5. Related [issue](https://bugs.python.org/issue44134)
+5. Related [issue](https://github.com/python/cpython/issues/88300)
 6. Possible by manually closing and re-opening in append mode
 
 </details>
