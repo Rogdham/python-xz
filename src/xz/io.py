@@ -187,7 +187,6 @@ class IOAbstract(IOBase):
             super().close()
 
     # the methods below are expected to be implemented by subclasses
-    # pylint: disable=no-self-use
 
     def _read(self, size: int) -> bytes:  # pragma: no cover
         """Read and return up to size bytes, where size is an int.
