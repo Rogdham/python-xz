@@ -9,6 +9,10 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 [unreleased]: https://github.com/rogdham/python-xz/compare/v0.4.0...HEAD
 
+### :boom: Breaking changes
+
+- End of Python 3.6 support
+
 ### :house: Internal
 
 - Necessary code changes following dev dependency update: black, pylint, pytest

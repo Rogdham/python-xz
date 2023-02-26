@@ -8,14 +8,9 @@ if sys.version_info >= (3, 9):  # pragma: no cover
 else:  # pragma: no cover
     _LZMAFilenameType = Union[str, bytes, PathLike, BinaryIO]
 
-    # ducktype Literal (NB we cannot use __class_getitem__ on Python 3.6)
-    # we could require typing-extensions package but that's hardly an improvement
-
-    class LiteralKlass:
-        def __getitem__(self, items: Any) -> str:
+    class Literal:
+        def __class_getitem__(cls, items: Any) -> str:
             return f"Literal{list(items)}"
-
-    Literal = LiteralKlass()
 
 
 if sys.version_info >= (3, 8):  # pragma: no cover

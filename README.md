@@ -179,10 +179,7 @@ As a general rule, all Python versions that are both [released and still officia
 supported][python-versions] are supported by `python-xz` and tested against (both
 CPython and PyPy implementations).
 
-Moreover, Python 3.6 is currently supported as well, but may be dropped in future
-releases.
-
 If you have other use cases or find issues with some Python versions, feel free to
 [open a ticket](https://github.com/Rogdham/python-xz/issues/new)!
 
-[python-versions]: https://devguide.python.org/#status-of-python-branches
+[python-versions]: https://devguide.python.org/versions/#versions
