@@ -62,6 +62,20 @@ would read all previous blocks for nothing).
 
 ---
 
+## Install
+
+Install `python-xz` with pip:
+
+```sh
+$ python -m pip install python-xz
+```
+
+_An unofficial package for conda is [also available][conda package], see [issue #5][#5]
+for more information._
+
+[conda package]: https://anaconda.org/conda-forge/python-xz
+[#5]: https://github.com/Rogdham/python-xz/issues/5
+
 ## Usage
 
 The API is similar to [lzma]: you can use either `xz.open` or `xz.XZFile`.
