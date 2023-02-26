@@ -1,19 +1,17 @@
 from bisect import bisect_right, insort_right
-from collections.abc import MutableMapping
 import sys
-from typing import Any, Dict, Generic, Iterator, List
-from typing import MutableMapping as TypingMutableMapping
-from typing import Tuple, TypeVar, cast
+from typing import Any, Dict, Generic, List, Tuple, TypeVar, cast
+
+if sys.version_info >= (3, 9):  # pragma: no cover
+    from collections.abc import Iterator, MutableMapping
+else:  # pragma: no cover
+    from typing import Iterator, MutableMapping
+
 
 T = TypeVar("T")
 
-if sys.version_info >= (3, 9):  # pragma: no cover
-    _MutableMapping = MutableMapping
-else:  # pragma: no cover
-    _MutableMapping = TypingMutableMapping
 
-
-class FloorDict(_MutableMapping[int, T]):
+class FloorDict(MutableMapping[int, T]):
     """A dict where keys are int, and accessing a key will use the closest lower one.
 
     Differences from dict:

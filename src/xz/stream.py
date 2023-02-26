@@ -1,5 +1,5 @@
 from io import SEEK_CUR
-from typing import BinaryIO, List
+from typing import BinaryIO, List, Optional
 
 from xz.block import XZBlock
 from xz.common import (
@@ -12,12 +12,7 @@ from xz.common import (
     round_up,
 )
 from xz.io import IOCombiner, IOProxy
-from xz.typing import (
-    Optional,
-    _BlockReadStrategyType,
-    _LZMAFiltersType,
-    _LZMAPresetType,
-)
+from xz.typing import _BlockReadStrategyType, _LZMAFiltersType, _LZMAPresetType
 
 
 class XZStream(IOCombiner[XZBlock]):

@@ -2,11 +2,17 @@ import doctest
 import os
 from pathlib import Path
 import shutil
-from typing import Iterator, List, Optional, Tuple
+import sys
+from typing import List, Optional, Tuple
 
 import pytest
 
 import xz
+
+if sys.version_info >= (3, 9):  # pragma: no cover
+    from collections.abc import Iterator
+else:  # pragma: no cover
+    from typing import Iterator
 
 
 @pytest.fixture(autouse=True)

@@ -20,6 +20,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Add tests for CPython 3.11 and PyPy 3.9
 - Use CPython 3.11 for misc. tests
 - Update Github actions dependencies
+- Import typing modules impacted by PEP 585 based on Python version
 
 ## [0.4.0] - 2022-01-09
 

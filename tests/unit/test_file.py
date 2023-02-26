@@ -1,7 +1,8 @@
 from io import SEEK_END, SEEK_SET, BytesIO, UnsupportedOperation
 import os
 from pathlib import Path
-from typing import Callable, Optional, Tuple, Union, cast
+import sys
+from typing import Optional, Tuple, Union, cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -9,6 +10,12 @@ import pytest
 from xz.common import XZError
 from xz.file import XZFile
 from xz.strategy import RollingBlockReadStrategy
+
+if sys.version_info >= (3, 9):  # pragma: no cover
+    from collections.abc import Callable
+else:  # pragma: no cover
+    from typing import Callable
+
 
 FILE_BYTES = bytes.fromhex(
     # stream 1: two blocks (lengths: 100, 90)

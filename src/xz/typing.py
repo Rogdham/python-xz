@@ -1,24 +1,22 @@
 from os import PathLike
 import sys
-from typing import TYPE_CHECKING, Any, BinaryIO, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Optional, Union
 
 if sys.version_info >= (3, 9):  # pragma: no cover
-    _LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
-    from typing import Literal
-else:  # pragma: no cover
-    _LZMAFilenameType = Union[str, bytes, PathLike, BinaryIO]
+    from collections.abc import Mapping, Sequence
 
-    class Literal:
-        def __class_getitem__(cls, items: Any) -> str:
-            return f"Literal{list(items)}"
+    _LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
+else:  # pragma: no cover
+    from typing import Mapping, Sequence
+
+    _LZMAFilenameType = Union[str, bytes, PathLike, BinaryIO]
 
 
 if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import Protocol
+    from typing import Literal, Protocol
 else:  # pragma: no cover
-    # ducktype Protocol
-    # we could require typing-extensions package instead
-    Protocol = object
+    from typing_extensions import Literal, Protocol
+
 
 if TYPE_CHECKING:  # pragma: no cover
     # avoid circular dependency

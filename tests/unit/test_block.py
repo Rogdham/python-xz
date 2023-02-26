@@ -1,5 +1,6 @@
 from io import SEEK_SET, BytesIO, UnsupportedOperation
-from typing import Callable, Iterator, Tuple, cast
+import sys
+from typing import Tuple, cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -8,6 +9,12 @@ import xz.block as block_module
 from xz.block import BlockRead, XZBlock
 from xz.common import XZError, create_xz_header, create_xz_index_footer
 from xz.io import IOAbstract, IOStatic
+
+if sys.version_info >= (3, 9):  # pragma: no cover
+    from collections.abc import Callable, Iterator
+else:  # pragma: no cover
+    from typing import Callable, Iterator
+
 
 BLOCK_BYTES = bytes.fromhex(
     "0200210116000000742fe5a3e0006300415d00209842100431d01ab285328305"

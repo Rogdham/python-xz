@@ -3,7 +3,7 @@ from lzma import compress
 from pathlib import Path
 from random import seed
 import sys
-from typing import BinaryIO, Callable, Iterator, Optional, cast
+from typing import BinaryIO, Optional, cast
 
 import pytest
 
@@ -12,9 +12,11 @@ from xz.common import create_xz_index_footer, parse_xz_footer, parse_xz_index
 from xz.io import IOCombiner, IOStatic
 
 if sys.version_info >= (3, 9):
+    from collections.abc import Callable, Iterator
     from random import randbytes
 else:
     from random import getrandbits
+    from typing import Callable, Iterator
 
     def randbytes(length: int) -> bytes:
         return getrandbits(length * 8).to_bytes(length, "little")

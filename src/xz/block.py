@@ -1,6 +1,6 @@
 from io import DEFAULT_BUFFER_SIZE, SEEK_SET
 from lzma import FORMAT_XZ, LZMACompressor, LZMADecompressor, LZMAError
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 from xz.common import (
     XZError,
@@ -11,12 +11,7 @@ from xz.common import (
 )
 from xz.io import IOAbstract, IOCombiner, IOStatic
 from xz.strategy import KeepBlockReadStrategy
-from xz.typing import (
-    Optional,
-    _BlockReadStrategyType,
-    _LZMAFiltersType,
-    _LZMAPresetType,
-)
+from xz.typing import _BlockReadStrategyType, _LZMAFiltersType, _LZMAPresetType
 
 
 class BlockRead:
