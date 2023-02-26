@@ -1,5 +1,6 @@
 from io import SEEK_CUR, SEEK_END
 import os
+import sys
 from typing import BinaryIO, List, Optional, cast
 import warnings
 
@@ -144,6 +145,10 @@ class XZFile(IOCombiner[XZStream]):
         finally:
             if self._close_fileobj:
                 self.fileobj.close()  # self.fileobj exists at this point
+            if sys.version_info < (3, 10):  # pragma: no cover
+                # fix coverage issue on some Python versions
+                # see https://github.com/nedbat/coveragepy/issues/1480
+                pass
 
     @property
     def stream_boundaries(self) -> List[int]:
