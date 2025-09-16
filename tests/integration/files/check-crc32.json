@@ -1,7 +1,7 @@
 {
   "generate": [
     {
-      "cmd": "xz -C crc32",
+      "cmd": "xz -T1 -C crc32",
       "length": 20280
     }
   ],

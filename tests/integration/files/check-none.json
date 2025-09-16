@@ -1,7 +1,7 @@
 {
   "generate": [
     {
-      "cmd": "xz -C none",
+      "cmd": "xz -T1 -C none",
       "length": 20280
     }
   ],

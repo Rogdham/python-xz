@@ -1,7 +1,7 @@
 {
   "generate": [
     {
-      "cmd": "xz -C sha256",
+      "cmd": "xz -T1 -C sha256",
       "length": 20280
     }
   ],

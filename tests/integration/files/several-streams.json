@@ -1,15 +1,15 @@
 {
   "generate": [
     {
-      "cmd": "xz --block-size 5000",
+      "cmd": "xz -T1 --block-size 5000",
       "length": 17000
     },
     {
-      "cmd": "xz --block-size 1000",
+      "cmd": "xz -T1 --block-size 1000",
       "length": 2100
     },
     {
-      "cmd": "xz",
+      "cmd": "xz -T1",
       "length": 1180
     }
   ],
