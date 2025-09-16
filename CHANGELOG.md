@@ -15,6 +15,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### :house: Internal
 
+- Fix test xz files generation for xz-utils 5.5.1+
 - Freeze dev dependencies versions
 - Update GitHub actions dependencies
 - Add tests for PyPy 3.10 and 3.11

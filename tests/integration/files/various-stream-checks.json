@@ -1,19 +1,19 @@
 {
   "generate": [
     {
-      "cmd": "xz -C none",
+      "cmd": "xz -T1 -C none",
       "length": 5070
     },
     {
-      "cmd": "xz -C crc32",
+      "cmd": "xz -T1 -C crc32",
       "length": 5070
     },
     {
-      "cmd": "xz -C crc64",
+      "cmd": "xz -T1 -C crc64",
       "length": 5070
     },
     {
-      "cmd": "xz -C sha256",
+      "cmd": "xz -T1 -C sha256",
       "length": 5070
     }
   ],
