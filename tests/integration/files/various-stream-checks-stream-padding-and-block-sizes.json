@@ -1,25 +1,25 @@
 {
   "generate": [
     {
-      "cmd": "xz -C none --block-list 100,1000,200,2000,0",
+      "cmd": "xz -T1 -C none --block-list 100,1000,200,2000,0",
       "length": 3600
     },
     {
       "cmd": "head -c 100 /dev/zero"
     },
     {
-      "cmd": "xz -C crc32",
+      "cmd": "xz -T1 -C crc32",
       "length": 10000
     },
     {
       "cmd": "head -c 800 /dev/zero"
     },
     {
-      "cmd": "xz -C crc64 --block-list 3000,300,0",
+      "cmd": "xz -T1 -C crc64 --block-list 3000,300,0",
       "length": 3333
     },
     {
-      "cmd": "xz -C sha256 --block-size 600",
+      "cmd": "xz -T1 -C sha256 --block-size 600",
       "length": 3347
     },
     {

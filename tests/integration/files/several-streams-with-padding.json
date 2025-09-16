@@ -1,21 +1,21 @@
 {
   "generate": [
     {
-      "cmd": "xz --block-size 1000",
+      "cmd": "xz -T1 --block-size 1000",
       "length": 1500
     },
     {
       "cmd": "head -c 100 /dev/zero"
     },
     {
-      "cmd": "xz",
+      "cmd": "xz -T1",
       "length": 2000
     },
     {
       "cmd": "head -c 200 /dev/zero"
     },
     {
-      "cmd": "xz --block-size 4000",
+      "cmd": "xz -T1 --block-size 4000",
       "length": 16780
     },
     {
