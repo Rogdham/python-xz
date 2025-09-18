@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+[unreleased]: https://github.com/rogdham/python-xz/compare/v0.5.0...HEAD
+
+### :house: Internal
+
+- Freeze dev dependencies versions
+
 ## [0.5.0] - 2023-02-27
 
 [0.5.0]: https://github.com/rogdham/python-xz/releases/tag/v0.5.0

@@ -2,20 +2,19 @@
 -e .
 
 # typing
-mypy
+mypy==1.0.1
 
 # tests
-coverage
-pytest
-pytest-cov
+pytest==7.2.1
+pytest-cov==4.0.0
 
 # lint
-pylint
+pylint==2.16.2
 
 # format
-black
-isort
+black==23.1.0
+isort==5.12.0
 
 # publish
-setuptools_scm
-wheel
+setuptools_scm==7.1.0
+wheel==0.38.4
