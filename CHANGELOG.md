@@ -12,6 +12,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 ### :house: Internal
 
 - Freeze dev dependencies versions
+- Update GitHub actions dependencies
 
 ## [0.5.0] - 2023-02-27
 
@@ -27,7 +28,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Refactor a descriptor following PEP 487
 - Add tests for CPython 3.11 and PyPy 3.9
 - Use CPython 3.11 for misc. tests
-- Update Github actions dependencies
+- Update GitHub actions dependencies
 - Import typing modules impacted by PEP 585 based on Python version
 
 ## [0.4.0] - 2022-01-09
