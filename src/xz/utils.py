@@ -1,12 +1,6 @@
 from bisect import bisect_right, insort_right
-import sys
+from collections.abc import Iterator, MutableMapping
 from typing import Any, Dict, Generic, List, Tuple, TypeVar, cast
-
-if sys.version_info >= (3, 9):  # pragma: no cover
-    from collections.abc import Iterator, MutableMapping
-else:  # pragma: no cover
-    from typing import Iterator, MutableMapping
-
 
 T = TypeVar("T")
 

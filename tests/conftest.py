@@ -1,14 +1,9 @@
+from collections.abc import Callable, Iterator
 from itertools import chain, product
 from pathlib import Path
-import sys
 from typing import List, Tuple
 
 import pytest
-
-if sys.version_info >= (3, 9):  # pragma: no cover
-    from collections.abc import Callable, Iterator
-else:  # pragma: no cover
-    from typing import Callable, Iterator
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from io import SEEK_CUR, SEEK_END, BytesIO
-import sys
 from typing import Tuple, cast
 from unittest.mock import Mock, call
 
@@ -8,12 +8,6 @@ import pytest
 from xz.common import XZError
 from xz.io import IOProxy
 from xz.stream import XZStream
-
-if sys.version_info >= (3, 9):  # pragma: no cover
-    from collections.abc import Callable
-else:  # pragma: no cover
-    from typing import Callable
-
 
 # a stream with two blocks (lengths: 100, 90)
 STREAM_BYTES = bytes.fromhex(

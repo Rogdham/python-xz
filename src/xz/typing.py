@@ -1,21 +1,8 @@
+from collections.abc import Mapping, Sequence
 from os import PathLike
-import sys
-from typing import TYPE_CHECKING, Any, BinaryIO, Optional, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Optional, Protocol, Union
 
-if sys.version_info >= (3, 9):  # pragma: no cover
-    from collections.abc import Mapping, Sequence
-
-    _LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
-else:  # pragma: no cover
-    from typing import Mapping, Sequence
-
-    _LZMAFilenameType = Union[str, bytes, PathLike, BinaryIO]
-
-
-if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import Literal, Protocol
-else:  # pragma: no cover
-    from typing_extensions import Literal, Protocol
+_LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
 
 
 if TYPE_CHECKING:  # pragma: no cover

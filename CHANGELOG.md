@@ -9,10 +9,15 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 [unreleased]: https://github.com/rogdham/python-xz/compare/v0.5.0...HEAD
 
+### :boom: Breaking changes
+
+- End of Python 3.7 and 3.8 support
+
 ### :house: Internal
 
 - Freeze dev dependencies versions
 - Update GitHub actions dependencies
+- Add tests for PyPy 3.10 and 3.11
 
 ## [0.5.0] - 2023-02-27
 
