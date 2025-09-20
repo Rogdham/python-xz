@@ -1,6 +1,6 @@
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from io import SEEK_SET, BytesIO, UnsupportedOperation
-from typing import Tuple, cast
+from typing import cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -20,19 +20,19 @@ BLOCK_BYTES = bytes.fromhex(
 def create_fileobj(data: bytes) -> Mock:
     raw = BytesIO(data)
     mock = Mock(wraps=raw)
-    mock.__class__ = cast(Mock, IOAbstract)  # needs to be subclass of IOAbstract
+    mock.__class__ = cast("Mock", IOAbstract)  # needs to be subclass of IOAbstract
     mock.__len__ = lambda _: len(raw.getvalue())
     return mock
 
 
 @pytest.fixture
-def fileobj() -> Iterator[Mock]:
-    yield create_fileobj(BLOCK_BYTES)
+def fileobj() -> Mock:
+    return create_fileobj(BLOCK_BYTES)
 
 
 @pytest.fixture
-def fileobj_empty() -> Iterator[Mock]:
-    yield create_fileobj(b"")
+def fileobj_empty() -> Mock:
+    return create_fileobj(b"")
 
 
 @pytest.fixture(autouse=True)
@@ -41,13 +41,10 @@ def patch_buffer_size(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
-def compressor(monkeypatch: pytest.MonkeyPatch) -> Iterator[Mock]:
+def compressor(monkeypatch: pytest.MonkeyPatch) -> Mock:
     mock = Mock()
     monkeypatch.setattr(block_module, "LZMACompressor", mock)
-    yield mock.return_value
-
-
-# pylint: disable=redefined-outer-name
+    return mock.return_value  # type: ignore[no-any-return]
 
 
 #
@@ -56,7 +53,7 @@ def compressor(monkeypatch: pytest.MonkeyPatch) -> Iterator[Mock]:
 
 
 def test_read_all(
-    fileobj: Mock, data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    fileobj: Mock, data_pattern_locate: Callable[[bytes], tuple[int, int]]
 ) -> None:
     block = XZBlock(fileobj, 1, 89, 100)
     assert block.tell() == 0
@@ -88,7 +85,7 @@ def test_read_all(
 
 
 def test_read_seek_forward(
-    fileobj: Mock, data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    fileobj: Mock, data_pattern_locate: Callable[[bytes], tuple[int, int]]
 ) -> None:
     block = XZBlock(fileobj, 1, 89, 100)
     assert block.tell() == 0
@@ -139,7 +136,7 @@ def test_read_seek_forward(
 
 
 def test_read_seek_backward(
-    fileobj: Mock, data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    fileobj: Mock, data_pattern_locate: Callable[[bytes], tuple[int, int]]
 ) -> None:
     block = XZBlock(fileobj, 1, 89, 100)
     assert block.tell() == 0
@@ -185,7 +182,7 @@ def test_read_seek_backward(
 
 
 def test_read_wrong_uncompressed_size_too_small(
-    fileobj: Mock, data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    fileobj: Mock, data_pattern_locate: Callable[[bytes], tuple[int, int]]
 ) -> None:
     block = XZBlock(fileobj, 1, 89, 99)
 
@@ -199,7 +196,7 @@ def test_read_wrong_uncompressed_size_too_small(
 
 
 def test_read_wrong_uncompressed_size_too_big(
-    fileobj: Mock, data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    fileobj: Mock, data_pattern_locate: Callable[[bytes], tuple[int, int]]
 ) -> None:
     block = XZBlock(fileobj, 1, 89, 101)
 
@@ -213,7 +210,7 @@ def test_read_wrong_uncompressed_size_too_big(
 
 
 def test_read_wrong_block_padding(
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
+    data_pattern_locate: Callable[[bytes], tuple[int, int]],
 ) -> None:
     fileobj = IOStatic(BLOCK_BYTES[:-5] + b"\xff" + BLOCK_BYTES[-4:])
     block = XZBlock(fileobj, 1, 89, 100)
@@ -228,7 +225,7 @@ def test_read_wrong_block_padding(
 
 
 def test_read_wrong_check(
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
+    data_pattern_locate: Callable[[bytes], tuple[int, int]],
 ) -> None:
     fileobj = IOStatic(BLOCK_BYTES[:-4] + b"\xff" * 4)
 
@@ -261,7 +258,7 @@ def test_read_truncated_data() -> None:
 
 
 def test_read_decompressor_eof(
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
+    data_pattern_locate: Callable[[bytes], tuple[int, int]],
 ) -> None:
     fileobj = IOStatic(
         bytes.fromhex(
@@ -362,36 +359,32 @@ def test_write_existing(fileobj: Mock, pos: int) -> None:
 
 def test_write_compressor_error_0(fileobj_empty: Mock, compressor: Mock) -> None:
     compressor.compress.return_value = create_xz_header(0)
-    with XZBlock(fileobj_empty, 1, 0, 0) as block:
-        with pytest.raises(XZError) as exc_info:
-            block.write(b"Hello, world!\n")
+    with XZBlock(fileobj_empty, 1, 0, 0) as block, pytest.raises(XZError) as exc_info:
+        block.write(b"Hello, world!\n")
     assert str(exc_info.value) == "block: compressor header"
 
 
 def test_write_compressor_error_1(fileobj_empty: Mock, compressor: Mock) -> None:
     compressor.compress.return_value = create_xz_header(1)
     compressor.flush.return_value = create_xz_index_footer(0, [(13, 37), (4, 2)])
-    with pytest.raises(XZError) as exc_info:
-        with XZBlock(fileobj_empty, 1, 0, 0) as block:
-            block.write(b"Hello, world!\n")
+    with pytest.raises(XZError) as exc_info, XZBlock(fileobj_empty, 1, 0, 0) as block:
+        block.write(b"Hello, world!\n")
     assert str(exc_info.value) == "block: compressor footer check"
 
 
 def test_write_compressor_error_2(fileobj_empty: Mock, compressor: Mock) -> None:
     compressor.compress.return_value = create_xz_header(1)
     compressor.flush.return_value = create_xz_index_footer(1, [(13, 37), (4, 2)])
-    with pytest.raises(XZError) as exc_info:
-        with XZBlock(fileobj_empty, 1, 0, 0) as block:
-            block.write(b"Hello, world!\n")
+    with pytest.raises(XZError) as exc_info, XZBlock(fileobj_empty, 1, 0, 0) as block:
+        block.write(b"Hello, world!\n")
     assert str(exc_info.value) == "block: compressor index records length"
 
 
 def test_write_compressor_error_3(fileobj_empty: Mock, compressor: Mock) -> None:
     compressor.compress.return_value = create_xz_header(1)
     compressor.flush.return_value = create_xz_index_footer(1, [(34, 1337)])
-    with pytest.raises(XZError) as exc_info:
-        with XZBlock(fileobj_empty, 1, 0, 0) as block:
-            block.write(b"Hello, world!\n")
+    with pytest.raises(XZError) as exc_info, XZBlock(fileobj_empty, 1, 0, 0) as block:
+        block.write(b"Hello, world!\n")
     assert str(exc_info.value) == "block: compressor uncompressed size"
 
 

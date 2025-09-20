@@ -20,7 +20,7 @@ def test_direct() -> None:
 
     # not proxied
     with pytest.raises(AttributeError) as exc_info:
-        src.abc  # pylint: disable=pointless-statement
+        src.abc
     assert (
         str(exc_info.value)
         == "'Src' object has not attribute 'abc' until its attribute 'proxy' is defined"

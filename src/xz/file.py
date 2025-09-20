@@ -1,7 +1,7 @@
 from io import SEEK_CUR, SEEK_END
 import os
 import sys
-from typing import BinaryIO, List, Optional, cast
+from typing import BinaryIO, Optional, cast
 import warnings
 
 from xz.common import DEFAULT_CHECK, XZError
@@ -83,8 +83,7 @@ class XZFile(IOCombiner[XZStream]):
 
         # get fileobj
         if isinstance(filename, (str, bytes, os.PathLike)):
-            # pylint: disable=consider-using-with, unspecified-encoding
-            self.fileobj = cast(BinaryIO, open(filename, self._mode + "b"))
+            self.fileobj = cast("BinaryIO", open(filename, self._mode + "b"))  # noqa: PTH123, SIM115
             self._close_fileobj = True
         elif hasattr(filename, "read"):  # weak check but better than nothing
             self.fileobj = filename
@@ -141,6 +140,7 @@ class XZFile(IOCombiner[XZStream]):
                     "Empty XZFile: nothing was written, "
                     "so output is empty (and not a valid xz file).",
                     RuntimeWarning,
+                    stacklevel=2,
                 )
         finally:
             if self._close_fileobj:
@@ -151,11 +151,11 @@ class XZFile(IOCombiner[XZStream]):
                 pass
 
     @property
-    def stream_boundaries(self) -> List[int]:
+    def stream_boundaries(self) -> list[int]:
         return list(self._fileobjs)
 
     @property
-    def block_boundaries(self) -> List[int]:
+    def block_boundaries(self) -> list[int]:
         return [
             stream_pos + block_boundary
             for stream_pos, stream in self._fileobjs.items()

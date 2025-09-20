@@ -1,18 +1,15 @@
-from typing import Dict
-
 import pytest
 
 from xz.utils import FloorDict
 
 
-def expect_floor_dict(floordict: FloorDict[str], items: Dict[int, str]) -> None:
+def expect_floor_dict(floordict: FloorDict[str], items: dict[int, str]) -> None:
     sorted_keys = sorted(items)
     assert len(floordict) == len(items)
     assert list(floordict) == sorted_keys
     assert list(floordict.keys()) == sorted_keys
     assert list(floordict.values()) == [items[key] for key in sorted_keys]
     assert list(floordict.items()) == [(key, items[key]) for key in sorted_keys]
-    # pylint: disable=protected-access
     assert floordict._keys == sorted_keys
     assert floordict._dict == items
 
@@ -23,13 +20,13 @@ def test_empty() -> None:
     expect_floor_dict(floordict, {})
 
     with pytest.raises(KeyError):
-        floordict[0]  # pylint: disable=pointless-statement
+        floordict[0]
     with pytest.raises(KeyError):
-        floordict[42]  # pylint: disable=pointless-statement
+        floordict[42]
     with pytest.raises(KeyError):
-        floordict.last_key  # pylint: disable=pointless-statement
+        floordict.last_key
     with pytest.raises(KeyError):
-        floordict.last_item  # pylint: disable=pointless-statement
+        floordict.last_item
 
 
 def test_normal() -> None:
@@ -52,14 +49,13 @@ def test_normal() -> None:
     assert floordict[1337] == "fifty"
     assert floordict.get(0) is None
     with pytest.raises(KeyError):
-        floordict[0]  # pylint: disable=pointless-statement
+        floordict[0]
     assert floordict.get(7) is None
     with pytest.raises(KeyError):
-        floordict[7]  # pylint: disable=pointless-statement
+        floordict[7]
     with pytest.raises(KeyError):
-        floordict[-42]  # pylint: disable=pointless-statement
+        floordict[-42]
     with pytest.raises(TypeError):
-        # pylint: disable=pointless-statement
         floordict["wrong type"]  # type: ignore[index]
 
 

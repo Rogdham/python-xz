@@ -1,11 +1,11 @@
 from hashlib import sha256
 from pathlib import Path
 import subprocess
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import pytest
 
-_IntegrationCase = Tuple[Path, Dict[str, Any]]
+_IntegrationCase = tuple[Path, dict[str, Any]]
 
 
 @pytest.mark.generate_integration_files
@@ -23,7 +23,7 @@ def test(integration_case: _IntegrationCase, data_pattern: bytes) -> None:
             step_data = data[:step_data_len]
             data = data[step_data_len:]
             fout.write(
-                subprocess.run(
+                subprocess.run(  # noqa: S603
                     step["cmd"].split(" "),
                     input=step_data,
                     stdout=subprocess.PIPE,

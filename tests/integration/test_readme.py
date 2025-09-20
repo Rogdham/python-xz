@@ -3,7 +3,7 @@ import doctest
 import os
 from pathlib import Path
 import shutil
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import pytest
 
@@ -12,14 +12,14 @@ import xz
 
 @pytest.fixture(autouse=True)
 def change_dir(tmp_path: Path) -> Iterator[None]:
-    old_dir = os.getcwd()
+    old_dir = Path.cwd()
     shutil.copy(Path(__file__).parent / "files" / "example.xz", tmp_path)
     os.chdir(tmp_path)
     yield
     os.chdir(old_dir)
 
 
-def _parse_readme() -> List[Tuple[int, str]]:
+def _parse_readme() -> list[tuple[int, str]]:
     code_blocks = []
     current_code_block = ""
     current_code_block_line: Optional[int] = None
@@ -48,7 +48,7 @@ _README_CODE_BLOCKS = _parse_readme()
         for line_no, code_block in _README_CODE_BLOCKS
     ],
 )
-def test_readme(code_block: str, tmp_path: Path) -> None:  # pylint: disable=redefined-outer-name
+def test_readme(code_block: str, tmp_path: Path) -> None:
     path = tmp_path / "block.txt"
     path.write_text(code_block)
     failure_count, test_count = doctest.testfile(

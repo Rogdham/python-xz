@@ -74,9 +74,8 @@ def test_tell_seek() -> None:
     assert obj.tell() == 3
     assert obj.seek(10) == 10
     assert obj.tell() == 10
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^invalid seek position$"):
         obj.seek(-1)
-    assert str(exc_info.value) == "invalid seek position"
     assert obj.seek(42) == 42
     assert obj.tell() == 42
 
@@ -85,9 +84,8 @@ def test_tell_seek() -> None:
     assert obj.tell() == 5
     assert obj.seek(10, 0) == 10
     assert obj.tell() == 10
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^invalid seek position$"):
         obj.seek(-1, 0)
-    assert str(exc_info.value) == "invalid seek position"
     assert obj.seek(42, 0) == 42
     assert obj.tell() == 42
 
@@ -97,9 +95,8 @@ def test_tell_seek() -> None:
     assert obj.tell() == 3
     assert obj.seek(2, 1) == 5
     assert obj.tell() == 5
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^invalid seek position$"):
         obj.seek(-6, 1)
-    assert str(exc_info.value) == "invalid seek position"
     assert obj.tell() == 5
     assert obj.seek(37, 1) == 42
     assert obj.tell() == 42
@@ -113,20 +110,17 @@ def test_tell_seek() -> None:
     assert obj.tell() == 0
     assert obj.seek(32, 2) == 42
     assert obj.tell() == 42
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^invalid seek position$"):
         obj.seek(-11, 2)
-    assert str(exc_info.value) == "invalid seek position"
 
     # from error
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^unsupported whence value$"):
         obj.seek(42, 3)
-    assert str(exc_info.value) == "unsupported whence value"
 
     # seek after close
     obj.close()
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^I/O operation on closed file$"):
         obj.seek(0)
-    assert str(exc_info.value) == "I/O operation on closed file"
 
 
 #
@@ -184,9 +178,8 @@ def test_tell_read() -> None:
 
     # read after close
     obj.close()
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^I/O operation on closed file$"):
         obj.read(1)
-    assert str(exc_info.value) == "I/O operation on closed file"
 
 
 def test_tell_read_empty() -> None:
@@ -195,7 +188,7 @@ def test_tell_read_empty() -> None:
             super().__init__(10)
             self.empty_reads = 100
 
-        def _read(self, size: int) -> bytes:
+        def _read(self, size: int) -> bytes:  # noqa: ARG002
             self.empty_reads -= 1
             if self.empty_reads > 0:
                 return b""
@@ -226,7 +219,7 @@ def test_write_non_writeable() -> None:
         assert str(exc_info.value) == "write"
 
 
-@pytest.mark.parametrize("write_partial", (True, False))
+@pytest.mark.parametrize("write_partial", [True, False])
 def test_write_full(write_partial: bool) -> None:
     class Impl(IOAbstract):
         def __init__(self) -> None:
@@ -248,9 +241,8 @@ def test_write_full(write_partial: bool) -> None:
     with Impl() as obj:
         # write before end
         obj.seek(5)
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError, match=r"^write is only supported from EOF$"):
             obj.write(b"abcdef")
-        assert str(exc_info.value) == "write is only supported from EOF"
         assert not obj.mock.called
 
         # write at end
@@ -322,9 +314,8 @@ def test_write_full(write_partial: bool) -> None:
         obj.close()
 
         # write after close
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError, match=r"^I/O operation on closed file$"):
             obj.write(b"xyz")
-        assert str(exc_info.value) == "I/O operation on closed file"
 
 
 #
@@ -342,12 +333,11 @@ def test_truncate_non_writeable() -> None:
 
     with Impl() as obj:
         assert obj.writable() is False
-        with pytest.raises(UnsupportedOperation) as exc_info:
+        with pytest.raises(UnsupportedOperation, match=r"^truncate$"):
             obj.truncate(4)
-        assert str(exc_info.value) == "truncate"
 
 
-@pytest.mark.parametrize("with_size", (True, False))
+@pytest.mark.parametrize("with_size", [True, False])
 def test_truncate_with_size(with_size: bool) -> None:
     class Impl(IOAbstract):
         def __init__(self) -> None:
@@ -360,7 +350,7 @@ def test_truncate_with_size(with_size: bool) -> None:
         def _write_after(self) -> None:
             self.mock.write_finish()
 
-        def _write(self, data: bytes) -> int:
+        def _write(self, data: bytes) -> int:  # noqa: ARG002
             raise RuntimeError("should not be called")
 
         def _truncate(self, size: int) -> None:
@@ -377,9 +367,8 @@ def test_truncate_with_size(with_size: bool) -> None:
             return obj.truncate()
 
         # truncate before start
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError, match=r"^invalid truncate size$"):
             obj.truncate(-1)
-        assert str(exc_info.value) == "invalid truncate size"
         assert not obj.mock.method_calls
 
         # truncate before end
@@ -411,6 +400,5 @@ def test_truncate_with_size(with_size: bool) -> None:
         assert not obj.mock.method_calls
 
         # truncate after close
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError, match=r"^I/O operation on closed file$"):
             obj.truncate(5)
-        assert str(exc_info.value) == "I/O operation on closed file"

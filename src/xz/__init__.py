@@ -39,18 +39,18 @@ from xz.file import XZFile
 from xz.open import xz_open
 from xz.strategy import KeepBlockReadStrategy, RollingBlockReadStrategy
 
-# pylint: disable=redefined-builtin
-open = xz_open
-# pylint: enable=redefined-builtin
+open = xz_open  # noqa: A001
 
 
-__all__ = (
-    "__version__",
+__all__: tuple[str, ...] = (
     "KeepBlockReadStrategy",
     "RollingBlockReadStrategy",
     "XZError",
     "XZFile",
+    "__version__",
     "open",
+)
+__all__ += (
     # re-export from lzma for easy access
     "CHECK_CRC32",
     "CHECK_CRC64",

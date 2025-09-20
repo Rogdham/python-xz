@@ -5,3 +5,41 @@
 [tool.ruff]
 src = ["src"]
 target-version = "py39"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "C901",
+    "COM812",
+    "D",
+    "E501",
+    "EM",
+    "ERA001",
+    "FA100",
+    "PLR0912",
+    "PLR0913",
+    "TRY003",
+    "TRY301",
+]
+allowed-confusables = ["α", "β", "γ", "δ", "ε", "ζ", "η", "θ"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "B018",
+    "FBT",
+    "INP001",
+    "PLR0915",
+    "PLR2004",
+    "S101",
+    "SLF001",
+    "TC001",
+]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["xz"]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+parametrize-names-type = "list"

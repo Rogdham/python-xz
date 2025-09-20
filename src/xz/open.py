@@ -1,6 +1,6 @@
 from functools import wraps
 from io import TextIOWrapper
-from typing import BinaryIO, List, Optional, Union, cast, overload
+from typing import BinaryIO, Optional, Union, cast, overload
 
 from xz.file import XZFile
 from xz.typing import (
@@ -37,7 +37,7 @@ class _XZFileText(TextIOWrapper):
             block_read_strategy=block_read_strategy,
         )
         super().__init__(
-            cast(BinaryIO, self.xz_file),
+            cast("BinaryIO", self.xz_file),
             encoding,
             errors,
             newline,
@@ -46,8 +46,8 @@ class _XZFileText(TextIOWrapper):
     check = AttrProxy[int]("xz_file")
     preset = AttrProxy[_LZMAPresetType]("xz_file")
     filters = AttrProxy[_LZMAFiltersType]("xz_file")
-    stream_boundaries = AttrProxy[List[int]]("xz_file")
-    block_boundaries = AttrProxy[List[int]]("xz_file")
+    stream_boundaries = AttrProxy[list[int]]("xz_file")
+    block_boundaries = AttrProxy[list[int]]("xz_file")
     block_read_strategy = AttrProxy[_BlockReadStrategyType]("xz_file")
 
     @property

@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     # avoid circular dependency
@@ -19,7 +19,7 @@ class KeepBlockReadStrategy:
 
 class RollingBlockReadStrategy:
     def __init__(self, max_block_read_nb: int = 8) -> None:
-        self.block_reads: Dict["XZBlock", float] = {}
+        self.block_reads: dict[XZBlock, float] = {}
         self.max_block_read_nb = max_block_read_nb
 
     def _freshly_used(self, block: "XZBlock") -> None:

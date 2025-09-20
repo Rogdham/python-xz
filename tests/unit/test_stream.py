@@ -1,6 +1,6 @@
 from collections.abc import Callable
-from io import SEEK_CUR, SEEK_END, BytesIO
-from typing import Tuple, cast
+from io import SEEK_CUR, SEEK_END, BytesIO, UnsupportedOperation
+from typing import cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -26,7 +26,7 @@ STREAM_BYTES_EMPTY = bytes.fromhex(
 )
 
 
-def test_parse(data_pattern_locate: Callable[[bytes], Tuple[int, int]]) -> None:
+def test_parse(data_pattern_locate: Callable[[bytes], tuple[int, int]]) -> None:
     fileobj = Mock(wraps=BytesIO(b"\xff" * 1000 + STREAM_BYTES + b"\xee" * 1000))
     fileobj.seek(-1000, SEEK_END)
     fileobj.method_calls.clear()
@@ -48,7 +48,7 @@ def test_parse(data_pattern_locate: Callable[[bytes], Tuple[int, int]]) -> None:
         call.seek(-12, SEEK_CUR),
     ]
 
-    # fileobj should be at the begining of the stream
+    # fileobj should be at the beginning of the stream
     assert fileobj.tell() == 1000
 
     # read from start
@@ -119,7 +119,7 @@ def test_write(data_pattern: bytes) -> None:
 
     fileobj = BytesIO(b"A" * init_size)
 
-    with XZStream(cast(IOProxy, fileobj), 1) as stream:
+    with XZStream(cast("IOProxy", fileobj), 1) as stream:
         assert fileobj.getvalue() == b"A" * init_size
 
         assert stream.block_boundaries == []
@@ -187,24 +187,24 @@ def test_truncate_and_write(data_pattern: bytes) -> None:
 def test_truncate_middle_block() -> None:
     fileobj = BytesIO(STREAM_BYTES)
     fileobj.seek(0, SEEK_END)
-    with pytest.raises(ValueError) as exc_info:
-        with XZStream.parse(fileobj) as stream:
-            stream.truncate(80)
-    assert str(exc_info.value) == "truncate"
+    with (
+        pytest.raises(UnsupportedOperation, match=r"^truncate$"),
+        XZStream.parse(fileobj) as stream,
+    ):
+        stream.truncate(80)
 
 
 def test_read_only_check() -> None:
     fileobj = BytesIO()
 
-    with XZStream(cast(IOProxy, fileobj), 1) as stream:
-        with pytest.raises(AttributeError):
-            stream.check = 4  # type: ignore[misc]
+    with XZStream(cast("IOProxy", fileobj), 1) as stream, pytest.raises(AttributeError):
+        stream.check = 4  # type: ignore[misc]
 
 
 def test_change_filters() -> None:
     fileobj = BytesIO()
 
-    with XZStream(cast(IOProxy, fileobj), 1) as stream:
+    with XZStream(cast("IOProxy", fileobj), 1) as stream:
         stream.write(b"aa")
         stream.change_block()
         stream.filters = [{"id": 3, "dist": 1}, {"id": 33}]
@@ -235,7 +235,7 @@ def test_change_filters() -> None:
 def test_change_preset() -> None:
     fileobj = BytesIO()
 
-    with XZStream(cast(IOProxy, fileobj), 1) as stream:
+    with XZStream(cast("IOProxy", fileobj), 1) as stream:
         stream.write(b"aa")
         stream.change_block()
         stream.preset = 9

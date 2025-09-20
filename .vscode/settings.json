@@ -35,6 +35,5 @@
     "editor.tabSize": 2
   },
   "python.envFile": "${workspaceFolder}/.vscode/env",
-  "python.linting.pylintEnabled": true,
   "python.testing.pytestEnabled": true
 }

@@ -1,6 +1,6 @@
 from io import DEFAULT_BUFFER_SIZE, SEEK_SET
 from lzma import FORMAT_XZ, LZMACompressor, LZMADecompressor, LZMAError
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 from xz.common import (
     XZError,
@@ -45,7 +45,6 @@ class BlockRead:
 
         skip_before = pos - self.pos
 
-        # pylint: disable=using-constant-test
         if self.decompressor.eof:
             raise XZError("block: decompressor eof")
 
@@ -95,7 +94,7 @@ class BlockWrite:
     def compress(self, data: bytes) -> None:
         self._write(self.compressor.compress(data))
 
-    def finish(self) -> Tuple[int, int]:
+    def finish(self) -> tuple[int, int]:
         data = self.compressor.flush()
 
         # footer
@@ -124,7 +123,7 @@ class XZBlock(IOAbstract):
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
         block_read_strategy: Optional[_BlockReadStrategyType] = None,
-    ):
+    ) -> None:
         super().__init__(uncompressed_size)
         self.fileobj = fileobj
         self.check = check

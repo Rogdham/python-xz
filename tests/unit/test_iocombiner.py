@@ -1,5 +1,5 @@
 from io import SEEK_SET, BytesIO
-from typing import List, cast
+from typing import cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -9,9 +9,9 @@ from xz.io import IOAbstract, IOCombiner, IOProxy
 
 def generate_mock(length: int) -> Mock:
     mock = Mock()
-    mock.__class__ = cast(Mock, IOAbstract)  # needs to be subclass of IOAbstract
-    mock._length = length  # pylint: disable=protected-access
-    mock.__len__ = lambda s: s._length  # pylint: disable=protected-access
+    mock.__class__ = cast("Mock", IOAbstract)  # needs to be subclass of IOAbstract
+    mock._length = length
+    mock.__len__ = lambda s: s._length
 
     def write(data: bytes) -> int:
         mock._length += len(data)
@@ -49,7 +49,7 @@ def test_seek() -> None:
 
 
 def test_read() -> None:
-    originals: List[IOAbstract] = [
+    originals: list[IOAbstract] = [
         IOProxy(BytesIO(b"abc"), 0, 3),
         generate_mock(0),  # size 0, will be never used
         IOProxy(BytesIO(b"defghij"), 0, 7),
@@ -94,7 +94,7 @@ def test_read() -> None:
     assert originals[2].tell() == 3
 
     # never used at all
-    assert not cast(Mock, originals[1]).method_calls
+    assert not cast("Mock", originals[1]).method_calls
 
 
 #
@@ -173,18 +173,18 @@ def test_write() -> None:
         parts[1].method_calls.clear()
 
         # force change fileobj
-        combiner._change_fileobj()  # pylint: disable=protected-access
+        combiner._change_fileobj()
         assert len(parts) == 3
         assert not parts[0].method_calls
         assert parts[1].method_calls == [
             call.writable(),
-            call._write_end(),  # pylint: disable=protected-access
+            call._write_end(),
         ]
         assert not parts[2].method_calls
         parts[1].method_calls.clear()
 
         # force change fileobj again
-        combiner._change_fileobj()  # pylint: disable=protected-access
+        combiner._change_fileobj()
         assert len(parts) == 4
         assert not parts[0].method_calls
         assert not parts[1].method_calls
@@ -218,13 +218,13 @@ def test_write() -> None:
     assert not parts[1].method_calls
     assert not parts[2].method_calls
     assert parts[3].method_calls == [
-        call._write_end(),  # pylint: disable=protected-access
+        call._write_end(),
     ]
 
     # check if last fileobj is empty no calls to _write_end
     with Combiner() as combiner:
         combiner.write(b"abc")
-        combiner._change_fileobj()  # pylint: disable=protected-access
+        combiner._change_fileobj()
         parts[0].method_calls.clear()
         assert not parts[1].method_calls
     assert not parts[0].method_calls
@@ -237,7 +237,6 @@ def test_write() -> None:
 
 
 def test_truncate() -> None:
-    # pylint: disable=protected-access
     originals = [
         generate_mock(2),
         generate_mock(0),
@@ -300,9 +299,7 @@ def test_truncate() -> None:
 def test_append() -> None:
     combiner = IOCombiner[IOAbstract](generate_mock(13), generate_mock(37))
     assert len(combiner) == 50
-    combiner._append(  # pylint: disable=protected-access
-        IOProxy(BytesIO(b"abcdefghij"), 0, 10)
-    )
+    combiner._append(IOProxy(BytesIO(b"abcdefghij"), 0, 10))
     assert len(combiner) == 60
     combiner.seek(54)
     assert combiner.read(4) == b"efgh"
@@ -312,5 +309,4 @@ def test_append_invalid() -> None:
     combiner = IOCombiner[IOAbstract](generate_mock(13), generate_mock(37))
     assert len(combiner) == 50
     with pytest.raises(TypeError):
-        # pylint: disable=protected-access
         combiner._append(BytesIO(b"abcdefghij"))  # type: ignore[arg-type]

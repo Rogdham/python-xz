@@ -1,12 +1,12 @@
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import pytest
 
 import xz
 
-_IntegrationCase = Tuple[Path, Dict[str, Any]]
+_IntegrationCase = tuple[Path, dict[str, Any]]
 
 
 def test(

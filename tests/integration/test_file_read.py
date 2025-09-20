@@ -1,17 +1,15 @@
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from xz import XZFile
 
-_IntegrationCase = Tuple[Path, Dict[str, Any]]
+_IntegrationCase = tuple[Path, dict[str, Any]]
 
 
 def test_read_all(integration_case: _IntegrationCase, data_pattern: bytes) -> None:
     xz_path, metadata = integration_case
     with XZFile(xz_path) as xzfile:
-        streams_items = list(
-            xzfile._fileobjs.items()  # pylint: disable=protected-access
-        )
+        streams_items = list(xzfile._fileobjs.items())
         assert len(streams_items) == len(metadata["streams"])
         pos = 0
         stream_boundaries = []
@@ -21,9 +19,7 @@ def test_read_all(integration_case: _IntegrationCase, data_pattern: bytes) -> No
             stream_pos, stream = stream_item
             assert stream_pos == pos
             assert stream.check == metadata_stream["check"]
-            block_items = list(
-                stream._fileobjs.items()  # pylint: disable=protected-access
-            )
+            block_items = list(stream._fileobjs.items())
             assert len(block_items) == len(metadata_stream["blocks"])
             for block_item, metadata_block in zip(
                 block_items, metadata_stream["blocks"]

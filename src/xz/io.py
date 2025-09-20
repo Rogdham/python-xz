@@ -34,16 +34,14 @@ class IOAbstract(IOBase):
         return self._length
 
     def _check_not_closed(self) -> None:
-        # https://github.com/PyCQA/pylint/issues/3484
-        # pylint: disable=using-constant-test
         if self.closed:
             raise ValueError("I/O operation on closed file")
 
     def fileno(self) -> int:
         try:
-            return cast(BinaryIO, self.fileobj).fileno()  # type: ignore[attr-defined]
+            return cast("BinaryIO", self.fileobj).fileno()  # type: ignore[attr-defined]
         except AttributeError:
-            raise UnsupportedOperation("fileno")  # pylint: disable=raise-missing-from
+            raise UnsupportedOperation("fileno") from None
 
     def seekable(self) -> bool:
         """Return a bool indicating whether object supports random access."""
@@ -188,7 +186,7 @@ class IOAbstract(IOBase):
 
     # the methods below are expected to be implemented by subclasses
 
-    def _read(self, size: int) -> bytes:  # pragma: no cover
+    def _read(self, size: int) -> bytes:  # pragma: no cover  # noqa: ARG002
         """Read and return up to size bytes, where size is an int.
 
         The size will not exceed the number of bytes between self._pos and
@@ -205,7 +203,7 @@ class IOAbstract(IOBase):
     def _write_after(self) -> None:
         """This method is called after the last write operation (usually on file close)."""
 
-    def _write(self, data: bytes) -> int:  # pragma: no cover
+    def _write(self, data: bytes) -> int:  # pragma: no cover  # noqa: ARG002
         """Writes as many bytes from data as possible, and return the number
         of bytes written.
 
@@ -217,7 +215,7 @@ class IOAbstract(IOBase):
         """
         raise UnsupportedOperation("write")
 
-    def _truncate(self, size: int) -> None:  # pragma: no cover
+    def _truncate(self, size: int) -> None:  # pragma: no cover  # noqa: ARG002
         """Truncate the file to the given size.
         This resizing can extend or reduce the current file size.
 
@@ -286,7 +284,7 @@ class IOCombiner(IOAbstract, Generic[T]):
         if self._fileobjs:
             last_fileobj = self._fileobjs.last_item
             if last_fileobj:
-                last_fileobj._write_end()  # pylint: disable=protected-access
+                last_fileobj._write_end()  # noqa: SLF001
             else:
                 del self._fileobjs[self._fileobjs.last_key]
 
@@ -301,7 +299,7 @@ class IOCombiner(IOAbstract, Generic[T]):
             fileobj = self._get_fileobj()
 
         # newly created fileobj should be writable
-        # otherwire this will raise UnsupportedOperation
+        # otherwise this will raise UnsupportedOperation
         return fileobj.write(data)
 
     def _truncate(self, size: int) -> None:
@@ -329,7 +327,7 @@ class IOCombiner(IOAbstract, Generic[T]):
             last_fileobj = self._fileobjs.last_item
             if last_fileobj:
                 if last_fileobj.writable():
-                    last_fileobj._write_end()  # pylint: disable=protected-access
+                    last_fileobj._write_end()  # noqa: SLF001
             else:
                 del self._fileobjs[self._fileobjs.last_key]
 

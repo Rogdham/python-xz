@@ -1,6 +1,6 @@
 from bisect import bisect_right, insort_right
 from collections.abc import Iterator, MutableMapping
-from typing import Any, Dict, Generic, List, Tuple, TypeVar, cast
+from typing import Generic, TypeVar, cast
 
 T = TypeVar("T")
 
@@ -14,8 +14,8 @@ class FloorDict(MutableMapping[int, T]):
     """
 
     def __init__(self) -> None:
-        self._dict: Dict[int, T] = {}
-        self._keys: List[int] = []  # sorted
+        self._dict: dict[int, T] = {}
+        self._keys: list[int] = []  # sorted
 
     def __repr__(self) -> str:
         return f"FloorDict<{self._dict!r}>"
@@ -35,7 +35,7 @@ class FloorDict(MutableMapping[int, T]):
             raise KeyError(key)
         return index
 
-    def get_with_index(self, key: int) -> Tuple[int, T]:
+    def get_with_index(self, key: int) -> tuple[int, T]:
         if not isinstance(key, int):
             raise TypeError("Invalid key")
         index = self._keys[self._key_index(key)]
@@ -68,7 +68,7 @@ class FloorDict(MutableMapping[int, T]):
         return self._dict[self.last_key]
 
 
-def parse_mode(mode: str) -> Tuple[str, bool, bool]:
+def parse_mode(mode: str) -> tuple[str, bool, bool]:
     """Parse a mode used in open.
 
     Order is not considered at all.
@@ -79,12 +79,12 @@ def parse_mode(mode: str) -> Tuple[str, bool, bool]:
     """
     mode_set = set(mode)
     if len(mode_set) != len(mode):
-        raise ValueError(f"invalid mode: {mode}")
+        raise ValueError(f"Invalid mode: {mode}")
     mode_plus = "+" in mode_set
     mode_set -= {"b", "+"}
     mode_base = mode_set.pop() if mode_set else "invalid"
     if mode_set or mode_base not in "rwx":
-        raise ValueError(f"invalid mode: {mode}")
+        raise ValueError(f"Invalid mode: {mode}")
     if mode_plus:
         return (f"{mode_base}+", True, True)
     return (mode_base, mode_base == "r", mode_base != "r")
@@ -122,10 +122,10 @@ class AttrProxy(Generic[T]):
     def __init__(self, proxy: str) -> None:
         self.proxy = proxy
 
-    def __set_name__(self, klass: Any, name: str) -> None:
+    def __set_name__(self, klass: type[object], name: str) -> None:
         self.attribute = name
 
-    def __get__(self, instance: Any, klass: Any) -> T:
+    def __get__(self, instance: object, klass: type[object]) -> T:
         dest = getattr(instance, self.proxy)
         if dest is None:
             try:
@@ -135,9 +135,9 @@ class AttrProxy(Generic[T]):
                     f"'{klass.__name__}' object has not attribute '{self.attribute}'"
                     f" until its attribute '{self.proxy}' is defined"
                 ) from ex
-        return cast(T, getattr(dest, self.attribute))
+        return cast("T", getattr(dest, self.attribute))
 
-    def __set__(self, instance: Any, value: T) -> None:
+    def __set__(self, instance: object, value: T) -> None:
         dest = getattr(instance, self.proxy)
         if dest is None:
             self.not_proxied_value = value

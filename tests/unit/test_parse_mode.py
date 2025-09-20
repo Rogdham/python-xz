@@ -1,10 +1,5 @@
 from itertools import permutations, product
-from typing import Tuple
-
-try:
-    from typing import get_args
-except ImportError:
-    pass
+from typing import get_args
 
 import pytest
 
@@ -38,10 +33,10 @@ def test_known_valid_modes_text() -> None:
 
 
 @pytest.mark.parametrize(
-    "mode, expected",
+    ["mode", "expected"],
     [pytest.param(mode, expected, id=mode) for mode, expected in VALID_MODES.items()],
 )
-def test_parse_mode_valid(mode: str, expected: Tuple[str, bool, bool]) -> None:
+def test_parse_mode_valid(mode: str, expected: tuple[str, bool, bool]) -> None:
     for parts in permutations(mode):
         mode_permuted = "".join(parts)
         assert parse_mode(mode_permuted) == expected, mode_permuted
@@ -59,5 +54,5 @@ def test_parse_mode_valid(mode: str, expected: Tuple[str, bool, bool]) -> None:
 def test_parse_mode_invalid(mode: str) -> None:
     for parts in permutations(mode):
         mode_permuted = "".join(parts)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"^Invalid mode: "):
             parse_mode(mode_permuted)

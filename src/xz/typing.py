@@ -23,7 +23,7 @@ _XZModesBinaryType = Literal[
 _XZModesTextType = Literal["rt", "rt+", "wt", "wt+", "xt", "xt+"]
 
 
-class _BlockReadStrategyType(Protocol):
+class _BlockReadStrategyType(Protocol):  # noqa: PYI046
     def on_create(self, block: "XZBlock") -> None: ...  # pragma: no cover
 
     def on_delete(self, block: "XZBlock") -> None: ...  # pragma: no cover

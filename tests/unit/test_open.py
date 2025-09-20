@@ -1,7 +1,7 @@
 from io import BytesIO
 import lzma
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 from unittest.mock import Mock
 
 import pytest
@@ -58,24 +58,23 @@ def test_mode_rt_file(tmp_path: Path) -> None:
     file_path = tmp_path / "file.xz"
     file_path.write_bytes(STREAM_BYTES)
 
-    with file_path.open("rb") as fin:
-        with xz_open(fin, "rt") as xzfile:
-            assert xzfile.stream_boundaries == [0]
-            assert xzfile.block_boundaries == [0, 10]
-            assert xzfile.fileno() == fin.fileno()
+    with file_path.open("rb") as fin, xz_open(fin, "rt") as xzfile:
+        assert xzfile.stream_boundaries == [0]
+        assert xzfile.block_boundaries == [0, 10]
+        assert xzfile.fileno() == fin.fileno()
 
-            assert xzfile.read() == "♥ utf8 ♥\n"
+        assert xzfile.read() == "♥ utf8 ♥\n"
 
-            assert xzfile.seek(9) == 9
-            assert xzfile.read() == "♥\n"
+        assert xzfile.seek(9) == 9
+        assert xzfile.read() == "♥\n"
 
 
 @pytest.mark.parametrize(
-    "encoding, expected",
-    (
+    ["encoding", "expected"],
+    [
         pytest.param("utf8", "еñϲоԺε", id="utf8"),
         pytest.param("latin1", "ÐµÃ±Ï²Ð¾ÔºÎµ", id="latin1"),
-    ),
+    ],
 )
 def test_mode_rt_encoding(encoding: str, expected: str) -> None:
     fileobj = BytesIO(
@@ -89,8 +88,8 @@ def test_mode_rt_encoding(encoding: str, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "errors, expected",
-    (
+    ["errors", "expected"],
+    [
         pytest.param(None, None, id="None"),
         pytest.param("strict", None, id="strict"),
         pytest.param("ignore", "encoding", id="ignore"),
@@ -98,7 +97,7 @@ def test_mode_rt_encoding(encoding: str, expected: str) -> None:
         pytest.param(
             "backslashreplace", r"en\x99co\x98di\x97ng", id="backslashreplace"
         ),
-    ),
+    ],
 )
 def test_mode_rt_encoding_errors(
     errors: Optional[str], expected: Optional[str]
@@ -112,23 +111,23 @@ def test_mode_rt_encoding_errors(
 
     with xz_open(fileobj, "rt", errors=errors) as xzfile:
         if expected is None:
-            with pytest.raises(ValueError):
+            with pytest.raises(UnicodeDecodeError):
                 xzfile.read()
         else:
             assert xzfile.read() == expected
 
 
 @pytest.mark.parametrize(
-    "newline, expected",
-    (
+    ["newline", "expected"],
+    [
         pytest.param(None, ["a\n", "b\n", "c\n", "d"], id="None"),
         pytest.param("", ["a\n", "b\r", "c\r\n", "d"], id="''"),
         pytest.param("\n", ["a\n", "b\rc\r\n", "d"], id="'\n'"),
         pytest.param("\r", ["a\nb\r", "c\r", "\nd"], id="'\r'"),
         pytest.param("\r\n", ["a\nb\rc\r\n", "d"], id="'\r\n'"),
-    ),
+    ],
 )
-def test_mode_rt_newline(newline: Optional[str], expected: List[str]) -> None:
+def test_mode_rt_newline(newline: Optional[str], expected: list[str]) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000000ff12d9410200210116000000742fe5a3010007610a620d63"
@@ -142,19 +141,25 @@ def test_mode_rt_newline(newline: Optional[str], expected: List[str]) -> None:
 
 def test_mode_rb_encoding() -> None:
     fileobj = BytesIO(STREAM_BYTES)
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match=r"^Argument 'encoding' not supported in binary mode$"
+    ):
         xz_open(fileobj, "rb", encoding="latin1")
 
 
 def test_mode_rb_encoding_errors() -> None:
     fileobj = BytesIO(STREAM_BYTES)
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match=r"^Argument 'errors' not supported in binary mode$"
+    ):
         xz_open(fileobj, "rb", errors="ignore")
 
 
 def test_mode_rb_newline() -> None:
     fileobj = BytesIO(STREAM_BYTES)
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match=r"^Argument 'newline' not supported in binary mode$"
+    ):
         xz_open(fileobj, "rb", newline="\n")
 
 
@@ -399,11 +404,11 @@ def test_mode_wt_preset() -> None:
 
 
 @pytest.mark.parametrize(
-    "encoding, data",
-    (
+    ["encoding", "data"],
+    [
         pytest.param("utf8", "еñϲоԺε", id="utf8"),
         pytest.param("latin1", "ÐµÃ±Ï²Ð¾ÔºÎµ", id="latin1"),
-    ),
+    ],
 )
 def test_mode_wt_encoding(encoding: str, data: str) -> None:
     fileobj = BytesIO()
@@ -417,8 +422,8 @@ def test_mode_wt_encoding(encoding: str, data: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "errors, data",
-    (
+    ["errors", "data"],
+    [
         pytest.param(None, None, id="None"),
         pytest.param("strict", None, id="strict"),
         pytest.param(
@@ -436,7 +441,7 @@ def test_mode_wt_encoding(encoding: str, data: str) -> None:
             rb"en\udc01co\udc02di\udc03ng",
             id="backslashreplace",
         ),
-    ),
+    ],
 )
 def test_mode_wt_encoding_errors(errors: Optional[str], data: Optional[bytes]) -> None:
     fileobj = BytesIO()
@@ -444,7 +449,7 @@ def test_mode_wt_encoding_errors(errors: Optional[str], data: Optional[bytes]) -
     with xz_open(fileobj, "wt", errors=errors) as xzfile:
         if data is None:
             xzfile.write("X")  # to avoid having an empty file
-            with pytest.raises(ValueError):
+            with pytest.raises(UnicodeError):
                 xzfile.write("en\udc01co\udc0di\udc03ng")
         else:
             xzfile.write("en\udc01co\udc02di\udc03ng")
@@ -454,14 +459,14 @@ def test_mode_wt_encoding_errors(errors: Optional[str], data: Optional[bytes]) -
 
 
 @pytest.mark.parametrize(
-    "newline, data",
-    (
+    ["newline", "data"],
+    [
         pytest.param(None, b"a\nb\n", id="None"),
         pytest.param("", b"a\nb\n", id="''"),
         pytest.param("\n", b"a\nb\n", id="'\n'"),
         pytest.param("\r", b"a\rb\r", id="'\r'"),
         pytest.param("\r\n", b"a\r\nb\r\n", id="'\r\n'"),
-    ),
+    ],
 )
 def test_mode_wt_newline(newline: Optional[str], data: bytes) -> None:
     fileobj = BytesIO()
@@ -477,16 +482,15 @@ def test_mode_wt_newline(newline: Optional[str], data: bytes) -> None:
 #
 
 
-@pytest.mark.parametrize("mode", ("rtb", "rbt", "wtb", "wbt"))
+@pytest.mark.parametrize("mode", ["rtb", "rbt", "wtb", "wbt"])
 def test_mode_invalid(mode: str) -> None:
     fileobj = BytesIO(STREAM_BYTES)
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^Invalid mode: "):
         xz_open(fileobj, mode)
-    assert str(exc_info.value) == f"Invalid mode: {mode}"
 
 
-@pytest.mark.parametrize("mode", ("r", "rt"))
+@pytest.mark.parametrize("mode", ["r", "rt"])
 def test_default_strategy(mode: str) -> None:
     fileobj = BytesIO(STREAM_BYTES)
 
@@ -494,7 +498,7 @@ def test_default_strategy(mode: str) -> None:
         assert isinstance(xzfile.block_read_strategy, RollingBlockReadStrategy)
 
 
-@pytest.mark.parametrize("mode", ("r", "rt"))
+@pytest.mark.parametrize("mode", ["r", "rt"])
 def test_custom_strategy(mode: str) -> None:
     fileobj = BytesIO(STREAM_BYTES)
     strategy = Mock()

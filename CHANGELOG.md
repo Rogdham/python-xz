@@ -20,7 +20,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Update GitHub actions dependencies
 - Add tests for PyPy 3.10 and 3.11
 - Improve tox & CI pipelines
-- Use ruff as formatter
+- Use ruff as linter and formatter
 
 ## [0.5.0] - 2023-02-27
 

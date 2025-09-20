@@ -1,7 +1,9 @@
+# ruff: noqa: PLR2004
+
 from binascii import crc32 as crc32int
 import lzma
 from struct import pack, unpack
-from typing import List, Tuple, cast
+from typing import cast
 
 HEADER_MAGIC = b"\xfd7zXZ\x00"
 FOOTER_MAGIC = b"YZ"
@@ -20,7 +22,7 @@ def encode_mbi(value: int) -> bytes:
     return data
 
 
-def decode_mbi(data: bytes) -> Tuple[int, int]:
+def decode_mbi(data: bytes) -> tuple[int, int]:
     value = 0
     for size, byte in enumerate(data):
         value |= (byte & 0x7F) << (size * 7)
@@ -52,7 +54,7 @@ def create_xz_header(check: int) -> bytes:
     return HEADER_MAGIC + flags + crc32(flags)
 
 
-def create_xz_index_footer(check: int, records: List[Tuple[int, int]]) -> bytes:
+def create_xz_index_footer(check: int, records: list[tuple[int, int]]) -> bytes:
     if not 0 <= check <= 0xF:
         raise XZError("footer check")
     # index
@@ -79,7 +81,7 @@ def parse_xz_header(header: bytes) -> int:
     if crc32(header[6:8]) != header[8:12]:
         raise XZError("header crc32")
     flag_first_byte, check = cast(
-        Tuple[int, int],
+        "tuple[int, int]",
         unpack("<BB", header[6:8]),
     )
     if flag_first_byte or not 0 <= check <= 0xF:
@@ -87,7 +89,7 @@ def parse_xz_header(header: bytes) -> int:
     return check
 
 
-def parse_xz_index(index: bytes) -> List[Tuple[int, int]]:
+def parse_xz_index(index: bytes) -> list[tuple[int, int]]:
     if len(index) < 8 or len(index) % 4:
         raise XZError("index length")
     index = memoryview(index)
@@ -119,7 +121,7 @@ def parse_xz_index(index: bytes) -> List[Tuple[int, int]]:
     return records
 
 
-def parse_xz_footer(footer: bytes) -> Tuple[int, int]:
+def parse_xz_footer(footer: bytes) -> tuple[int, int]:
     if len(footer) != 12:
         raise XZError("footer length")
     if footer[10:12] != FOOTER_MAGIC:
@@ -127,7 +129,7 @@ def parse_xz_footer(footer: bytes) -> Tuple[int, int]:
     if crc32(footer[4:10]) != footer[:4]:
         raise XZError("footer crc32")
     backward_size, flag_first_byte, check = cast(
-        Tuple[int, int, int],
+        "tuple[int, int, int]",
         unpack("<IBB", footer[4:10]),
     )
     backward_size = (backward_size + 1) * 4
@@ -136,5 +138,5 @@ def parse_xz_footer(footer: bytes) -> Tuple[int, int]:
     return (check, backward_size)
 
 
-# find default value for check implicitely used by lzma
+# find default value for check implicitly used by lzma
 DEFAULT_CHECK = parse_xz_header(lzma.compress(b"")[:12])

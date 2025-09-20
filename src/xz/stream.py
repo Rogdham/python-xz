@@ -1,5 +1,5 @@
 from io import SEEK_CUR
-from typing import BinaryIO, List, Optional
+from typing import BinaryIO, Optional
 
 from xz.block import XZBlock
 from xz.common import (
@@ -36,7 +36,7 @@ class XZStream(IOCombiner[XZBlock]):
         return self._check
 
     @property
-    def block_boundaries(self) -> List[int]:
+    def block_boundaries(self) -> list[int]:
         return list(self._fileobjs)
 
     @property

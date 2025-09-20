@@ -2,7 +2,7 @@ from collections.abc import Callable
 from io import SEEK_END, SEEK_SET, BytesIO, UnsupportedOperation
 import os
 from pathlib import Path
-from typing import Optional, Tuple, Union, cast
+from typing import Optional, Union, cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -73,7 +73,7 @@ SUPPORTED_MODES = (
     "xb+",
 )
 
-EMPTY_XZ_FILE_WARNING_FILTER = "ignore:Empty XZFile*:RuntimeWarning:xz.file"
+EMPTY_XZ_FILE_WARNING_FILTER = "ignore:Empty XZFile*:RuntimeWarning"
 
 
 #
@@ -82,8 +82,8 @@ EMPTY_XZ_FILE_WARNING_FILTER = "ignore:Empty XZFile*:RuntimeWarning:xz.file"
 
 
 @pytest.mark.filterwarnings(EMPTY_XZ_FILE_WARNING_FILTER)
-@pytest.mark.parametrize("init_has_ability", (False, True))
-@pytest.mark.parametrize("ability", ("seekable", "readable", "writable"))
+@pytest.mark.parametrize("init_has_ability", [False, True])
+@pytest.mark.parametrize("ability", ["seekable", "readable", "writable"])
 @pytest.mark.parametrize("mode", SUPPORTED_MODES)
 def test_required_abilities(mode: str, ability: str, init_has_ability: bool) -> None:
     fileobj = Mock(wraps=BytesIO(FILE_BYTES))
@@ -96,7 +96,7 @@ def test_required_abilities(mode: str, ability: str, init_has_ability: bool) -> 
     )
 
     if not init_has_ability and expected_ability:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=rf"^filename is not {ability}$"):
             XZFile(fileobj, mode=mode)
     else:
         with XZFile(fileobj, mode=mode) as xzfile:
@@ -109,11 +109,11 @@ def test_required_abilities(mode: str, ability: str, init_has_ability: bool) -> 
 #
 
 
-@pytest.mark.parametrize("filetype", ("fileobj", "filename", "path"))
+@pytest.mark.parametrize("filetype", ["fileobj", "filename", "path"])
 def test_read(
     filetype: str,
     tmp_path: Path,
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
+    data_pattern_locate: Callable[[bytes], tuple[int, int]],
 ) -> None:
     filename: Union[Path, BytesIO, str]
 
@@ -178,13 +178,13 @@ def test_read(
 
 
 @pytest.mark.filterwarnings(EMPTY_XZ_FILE_WARNING_FILTER)
-@pytest.mark.parametrize("from_file", (False, True))
+@pytest.mark.parametrize("from_file", [False, True])
 @pytest.mark.parametrize("mode", SUPPORTED_MODES)
 def test_read_with_mode(
     mode: str,
     from_file: bool,
     tmp_path: Path,
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
+    data_pattern_locate: Callable[[bytes], tuple[int, int]],
 ) -> None:
     filename: Union[Path, BytesIO]
 
@@ -226,7 +226,7 @@ def test_read_invalid_filename_type() -> None:
     )
 
 
-@pytest.mark.parametrize("data", (b"", b"\x00" * 100), ids=("empty", "only-padding"))
+@pytest.mark.parametrize("data", [b"", b"\x00" * 100], ids=("empty", "only-padding"))
 def test_read_no_stream(data: bytes) -> None:
     filename = BytesIO(data)
 
@@ -243,7 +243,6 @@ def test_read_strategy_calls() -> None:
     with XZFile(fileobj, block_read_strategy=strategy) as xz_file:
         blocks = [
             block
-            # pylint: disable=protected-access
             for stream in xz_file._fileobjs.values()
             for block in stream._fileobjs.values()
         ]
@@ -268,7 +267,7 @@ def test_read_strategy_calls() -> None:
         ]
 
 
-@pytest.mark.parametrize("max_block_read_nb", (None, 1, 2, 7, 100))
+@pytest.mark.parametrize("max_block_read_nb", [None, 1, 2, 7, 100])
 def test_read_default_strategy(max_block_read_nb: Optional[int]) -> None:
     fileobj = Mock(wraps=BytesIO(FILE_BYTES_MANY_SMALL_BLOCKS))
 
@@ -402,26 +401,26 @@ def test_write() -> None:
 
 
 @pytest.mark.parametrize(
-    "mode, start_empty",
+    ["mode", "start_empty"],
     [
         (mode, start_empty)
         for mode in SUPPORTED_MODES
-        if not mode[0] == "r"
+        if mode[0] != "r"
         for start_empty in ((True,) if mode[0] == "a" else (False, True))
     ],
 )
 def test_write_empty(mode: str, start_empty: bool) -> None:
     filename = BytesIO(b"" if start_empty else FILE_BYTES)
 
-    with pytest.warns(RuntimeWarning):
+    with pytest.warns(RuntimeWarning):  # noqa: SIM117
         with XZFile(filename, mode=mode):
             pass
 
     assert filename.getvalue() == b""
 
 
-@pytest.mark.parametrize("file_exists", (False, True))
-@pytest.mark.parametrize("from_file", (False, True))
+@pytest.mark.parametrize("file_exists", [False, True])
+@pytest.mark.parametrize("from_file", [False, True])
 @pytest.mark.parametrize("mode", SUPPORTED_MODES)
 def test_write_with_mode(
     mode: str, from_file: bool, file_exists: bool, tmp_path: Path
@@ -439,11 +438,10 @@ def test_write_with_mode(
         filename = tmp_path / "archive.xz"
         if file_exists:
             filename.write_bytes(initial_data)
+    elif file_exists:
+        filename = BytesIO(initial_data)
     else:
-        if file_exists:
-            filename = BytesIO(initial_data)
-        else:
-            filename = BytesIO()
+        filename = BytesIO()
 
     if not file_exists and "r" in mode:
         if from_file:
@@ -475,9 +473,9 @@ def test_write_with_mode(
 
         if expected_success:
             if from_file:
-                value = cast(Path, filename).read_bytes()
+                value = cast("Path", filename).read_bytes()
             else:
-                value = cast(BytesIO, filename).getvalue()
+                value = cast("BytesIO", filename).getvalue()
             if "r" in mode:
                 expected_value = bytes.fromhex(
                     "fd377a585a000004e6d6b446"  # header
@@ -755,7 +753,7 @@ def test_change_preset_on_existing() -> None:
 
 @pytest.mark.parametrize(
     "mode",
-    (
+    [
         "rt",
         "r+t",
         "wt",
@@ -777,22 +775,20 @@ def test_change_preset_on_existing() -> None:
         "rxt",
         "rx+t",
         "what-is-this",
-    ),
+    ],
 )
 def test_invalid_mode(mode: str) -> None:
     filename = BytesIO(FILE_BYTES)
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=r"^Invalid mode: "):
         XZFile(filename, mode)
-    assert str(exc_info.value) == f"invalid mode: {mode}"
 
 
 def test_fileno(tmp_path: Path) -> None:
     file_path = tmp_path / "file.xz"
     file_path.write_bytes(FILE_BYTES)
 
-    with file_path.open("rb") as fin:
-        with XZFile(fin) as xzfile:
-            assert xzfile.fileno() == fin.fileno()
+    with file_path.open("rb") as fin, XZFile(fin) as xzfile:
+        assert xzfile.fileno() == fin.fileno()
 
 
 def test_fileno_error(tmp_path: Path) -> None:
@@ -802,6 +798,5 @@ def test_fileno_error(tmp_path: Path) -> None:
     with file_path.open("rb") as fin:
         mock = Mock(wraps=fin)
         mock.fileno.side_effect = AttributeError()
-        with XZFile(mock) as xzfile:
-            with pytest.raises(UnsupportedOperation):
-                xzfile.fileno()
+        with XZFile(mock) as xzfile, pytest.raises(UnsupportedOperation):
+            xzfile.fileno()

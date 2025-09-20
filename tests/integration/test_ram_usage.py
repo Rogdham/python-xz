@@ -15,7 +15,7 @@ from xz.io import IOCombiner, IOStatic
 @pytest.fixture
 def ram_usage() -> Iterator[Callable[[], int]]:
     try:
-        import tracemalloc  # pylint: disable=import-outside-toplevel
+        import tracemalloc  # noqa: PLC0415
     except ImportError:  # e.g. PyPy
         pytest.skip("tracemalloc module not available")
 
@@ -35,7 +35,7 @@ def fileobj() -> BinaryIO:
     nb_blocks = 50
 
     seed(0)
-    data = compress(randbytes(BLOCK_SIZE))
+    data = compress(randbytes(BLOCK_SIZE))  # noqa: S311
     header = data[:12]
     footer = data[-12:]
     check, backward_size = parse_xz_footer(footer)
@@ -44,7 +44,7 @@ def fileobj() -> BinaryIO:
     index_footer = create_xz_index_footer(check, records * nb_blocks)
 
     return cast(
-        BinaryIO,
+        "BinaryIO",
         IOCombiner(
             IOStatic(header),
             *[IOStatic(block)] * nb_blocks,
@@ -53,11 +53,7 @@ def fileobj() -> BinaryIO:
     )
 
 
-def test_read_linear(
-    # pylint: disable=redefined-outer-name
-    fileobj: BinaryIO,
-    ram_usage: Callable[[], int],
-) -> None:
+def test_read_linear(fileobj: BinaryIO, ram_usage: Callable[[], int]) -> None:
     with XZFile(fileobj) as xz_file:
         # read almost one block
         xz_file.read(BLOCK_SIZE - 1)
@@ -72,9 +68,7 @@ def test_read_linear(
 
 
 def test_partial_read_each_block(
-    # pylint: disable=redefined-outer-name
-    fileobj: BinaryIO,
-    ram_usage: Callable[[], int],
+    fileobj: BinaryIO, ram_usage: Callable[[], int]
 ) -> None:
     one_block_memory: Optional[int] = None
 
@@ -94,11 +88,7 @@ def test_partial_read_each_block(
                 )
 
 
-def test_write(
-    tmp_path: Path,
-    # pylint: disable=redefined-outer-name
-    ram_usage: Callable[[], int],
-) -> None:
+def test_write(tmp_path: Path, ram_usage: Callable[[], int]) -> None:
     nb_blocks = 10
 
     seed(0)
@@ -108,7 +98,7 @@ def test_write(
     with XZFile(tmp_path / "archive.xz", "w") as xz_file:
         for i in range(nb_blocks):
             xz_file.change_block()
-            xz_file.write(randbytes(BLOCK_SIZE))
+            xz_file.write(randbytes(BLOCK_SIZE))  # noqa: S311
 
             if one_block_memory is None:
                 one_block_memory = ram_usage()

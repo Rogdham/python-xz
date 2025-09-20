@@ -1,7 +1,6 @@
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from itertools import chain, product
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
 
@@ -16,7 +15,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: List[pytest.Item]
+    config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     root = Path(__file__).parent.parent
     for item in items:
@@ -51,10 +50,10 @@ def data_pattern() -> bytes:
 
 
 @pytest.fixture(scope="session")
-def data_pattern_locate() -> Iterator[Callable[[bytes], Tuple[int, int]]]:
-    def locate(data: bytes) -> Tuple[int, int]:
+def data_pattern_locate() -> Callable[[bytes], tuple[int, int]]:
+    def locate(data: bytes) -> tuple[int, int]:
         if len(data) < 3:
             raise ValueError("data to short")
         return (_DATA_PATTERN.index(data), len(data))
 
-    yield locate
+    return locate
