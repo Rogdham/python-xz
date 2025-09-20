@@ -1,6 +1,13 @@
 name: build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - "master"
+      - "ci-*"
+    tags:
+      - "**"
+  pull_request:
 
 env:
   PY_COLORS: 1
