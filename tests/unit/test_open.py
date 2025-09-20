@@ -170,22 +170,22 @@ def test_mode_rb_newline() -> None:
 TEST_MODE_W_CHECK_BYTES = bytes.fromhex(
     # stream 1
     "fd377a585a0000016922de36"
-    "0200210116000000742fe5a3010001ceb1000000256bc6a8"
+    "0200210116000000742fe5a3010001d4b1000000fe91eb18"
     "00011602d06110d2"
     "9042990d010000000001595a"
     # stream 2
     "fd377a585a0000016922de36"
-    "0200210116000000742fe5a3010001ceb20000009f3acf31"
+    "0200210116000000742fe5a3010001d4b200000044c0e281"
     "00011602d06110d2"
     "9042990d010000000001595a"
     # stream 3 (changed check)
     "fd377a585a000004e6d6b446"
-    "0200210116000000742fe5a3010001ceb3000000ab6cffc6b19a1d23"
+    "0200210116000000742fe5a3010001d4b30000009872e047a72fa9ba"
     "00011a02dc2ea57e"
     "1fb6f37d010000000004595a"
     # stream 4 (changed check)
     "fd377a585a000004e6d6b446"
-    "0200210116000000742fe5a3010001ceb4000000accd9792dc23671f"
+    "0200210116000000742fe5a3010001d4b40000009fd38813ca96d386"
     "00011a02dc2ea57e"
     "1fb6f37d010000000004595a"
 )
@@ -196,14 +196,14 @@ def test_mode_wb_check() -> None:
 
     with xz_open(fileobj, "wb", check=1) as xzfile:
         assert xzfile.mode == "w"
-        xzfile.write(b"\xce\xb1")
+        xzfile.write(b"\xd4\xb1")
         xzfile.change_stream()
         xzfile.check = 4
-        xzfile.write(b"\xce\xb2")
+        xzfile.write(b"\xd4\xb2")
         xzfile.change_stream()
-        xzfile.write(b"\xce\xb3")
+        xzfile.write(b"\xd4\xb3")
         xzfile.change_stream()
-        xzfile.write(b"\xce\xb4")
+        xzfile.write(b"\xd4\xb4")
 
     assert fileobj.getvalue() == TEST_MODE_W_CHECK_BYTES
 
@@ -213,14 +213,14 @@ def test_mode_wt_check() -> None:
 
     with xz_open(fileobj, "wt", check=1) as xzfile:
         assert xzfile.mode == "wt"
-        xzfile.write("α")
+        xzfile.write("Ա")
         xzfile.change_stream()
         xzfile.check = 4
-        xzfile.write("β")
+        xzfile.write("Բ")
         xzfile.change_stream()
-        xzfile.write("γ")
+        xzfile.write("Գ")
         xzfile.change_stream()
-        xzfile.write("δ")
+        xzfile.write("Դ")
 
     assert fileobj.getvalue() == TEST_MODE_W_CHECK_BYTES
 
@@ -230,13 +230,13 @@ TEST_MODE_W_FILTERS_BYTES = bytes.fromhex(
     # header
     "fd377a585a0000016922de36"
     # block 1
-    "0200210116000000742fe5a3010001ceb1000000256bc6a8"
+    "0200210116000000742fe5a3010001d4b1000000fe91eb18"
     # block 2
-    "0200210116000000742fe5a3010001ceb20000009f3acf31"
+    "0200210116000000742fe5a3010001d4b200000044c0e281"
     # block 3 (changed filters)
-    "02010301002101167920c4ee010001cee5000000090ac846"
+    "02010301002101167920c4ee010001d4df000000d2f0e5f6"
     # block 4 (changed filters)
-    "02010301002101167920c4ee010001cee6000000aa9facd8"
+    "02010301002101167920c4ee010001d4e000000071658168"
     # index
     "0004160216021602160200008a2bb83b"
     # footer
@@ -245,9 +245,9 @@ TEST_MODE_W_FILTERS_BYTES = bytes.fromhex(
     # header
     "fd377a585a0000016922de36"
     # block 1 (changed filters)
-    "02010301002101167920c4ee010001cee70000003cafabaf"
+    "02010301002101167920c4ee010001d4e1000000e755861f"
     # block 2 (changed filters)
-    "02010301002101167920c4ee010001cee800000086fea236"
+    "02010301002101167920c4ee010001d4e20000005d048f86"
     # index
     "00021602160200008ba0042b"
     # footer
@@ -256,9 +256,9 @@ TEST_MODE_W_FILTERS_BYTES = bytes.fromhex(
     # header
     "fd377a585a0000016922de36"
     # block 1 (changed filters)
-    "02010301002101167920c4ee010001cee900000010cea541"
+    "02010301002101167920c4ee010001d4e3000000cb3488f1"
     # block 2 (changed filters)
-    "02010301002101167920c4ee010001ceea00000081d31ad1"
+    "02010301002101167920c4ee010001d4e40000005a293761"
     # index
     "00021602160200008ba0042b"
     # footer
@@ -270,22 +270,22 @@ def test_mode_wb_filters() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wb", check=1) as xzfile:
-        xzfile.write(b"\xce\xb1")
+        xzfile.write(b"\xd4\xb1")
         xzfile.change_block()
         xzfile.filters = [{"id": 3, "dist": 1}, {"id": 33}]
-        xzfile.write(b"\xce\xb2")
+        xzfile.write(b"\xd4\xb2")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb3")
+        xzfile.write(b"\xd4\xb3")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb4")
+        xzfile.write(b"\xd4\xb4")
         xzfile.change_stream()
-        xzfile.write(b"\xce\xb5")
+        xzfile.write(b"\xd4\xb5")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb6")
+        xzfile.write(b"\xd4\xb6")
         xzfile.change_stream()
-        xzfile.write(b"\xce\xb7")
+        xzfile.write(b"\xd4\xb7")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb8")
+        xzfile.write(b"\xd4\xb8")
 
     assert fileobj.getvalue() == TEST_MODE_W_FILTERS_BYTES
 
@@ -294,22 +294,22 @@ def test_mode_wt_filters() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", check=1) as xzfile:
-        xzfile.write("α")
+        xzfile.write("Ա")
         xzfile.change_block()
         xzfile.filters = [{"id": 3, "dist": 1}, {"id": 33}]
-        xzfile.write("β")
+        xzfile.write("Բ")
         xzfile.change_block()
-        xzfile.write("γ")
+        xzfile.write("Գ")
         xzfile.change_block()
-        xzfile.write("δ")
+        xzfile.write("Դ")
         xzfile.change_stream()
-        xzfile.write("ε")
+        xzfile.write("Ե")
         xzfile.change_block()
-        xzfile.write("ζ")
+        xzfile.write("Զ")
         xzfile.change_stream()
-        xzfile.write("η")
+        xzfile.write("Է")
         xzfile.change_block()
-        xzfile.write("θ")
+        xzfile.write("Ը")
 
     assert fileobj.getvalue() == TEST_MODE_W_FILTERS_BYTES
 
@@ -319,13 +319,13 @@ TEST_MODE_W_PRESET_BYTES = bytes.fromhex(
     # header
     "fd377a585a0000016922de36"
     # block 1
-    "0200210116000000742fe5a3010001ceb1000000256bc6a8"
+    "0200210116000000742fe5a3010001d4b1000000fe91eb18"
     # block 2
-    "0200210116000000742fe5a3010001ceb20000009f3acf31"
+    "0200210116000000742fe5a3010001d4b200000044c0e281"
     # block 3 (changed preset)
-    "020021011c00000010cf58cc010001ceb3000000090ac846"
+    "020021011c00000010cf58cc010001d4b3000000d2f0e5f6"
     # block 4 (changed preset)
-    "020021011c00000010cf58cc010001ceb4000000aa9facd8"
+    "020021011c00000010cf58cc010001d4b400000071658168"
     # index
     "0004160216021602160200008a2bb83b"
     # footer
@@ -334,9 +334,9 @@ TEST_MODE_W_PRESET_BYTES = bytes.fromhex(
     # header
     "fd377a585a0000016922de36"
     # block 1 (changed preset)
-    "020021011c00000010cf58cc010001ceb50000003cafabaf"
+    "020021011c00000010cf58cc010001d4b5000000e755861f"
     # block 2 (changed preset)
-    "020021011c00000010cf58cc010001ceb600000086fea236"
+    "020021011c00000010cf58cc010001d4b60000005d048f86"
     # index
     "00021602160200008ba0042b"
     # footer
@@ -345,9 +345,9 @@ TEST_MODE_W_PRESET_BYTES = bytes.fromhex(
     # header
     "fd377a585a0000016922de36"
     # block 1 (changed preset)
-    "020021011c00000010cf58cc010001ceb700000010cea541"
+    "020021011c00000010cf58cc010001d4b7000000cb3488f1"
     # block 2 (changed preset)
-    "020021011c00000010cf58cc010001ceb800000081d31ad1"
+    "020021011c00000010cf58cc010001d4b80000005a293761"
     # index
     "00021602160200008ba0042b"
     # footer
@@ -359,22 +359,22 @@ def test_mode_wb_preset() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wb", check=1) as xzfile:
-        xzfile.write(b"\xce\xb1")
+        xzfile.write(b"\xd4\xb1")
         xzfile.change_block()
         xzfile.preset = 9
-        xzfile.write(b"\xce\xb2")
+        xzfile.write(b"\xd4\xb2")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb3")
+        xzfile.write(b"\xd4\xb3")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb4")
+        xzfile.write(b"\xd4\xb4")
         xzfile.change_stream()
-        xzfile.write(b"\xce\xb5")
+        xzfile.write(b"\xd4\xb5")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb6")
+        xzfile.write(b"\xd4\xb6")
         xzfile.change_stream()
-        xzfile.write(b"\xce\xb7")
+        xzfile.write(b"\xd4\xb7")
         xzfile.change_block()
-        xzfile.write(b"\xce\xb8")
+        xzfile.write(b"\xd4\xb8")
 
     assert fileobj.getvalue() == TEST_MODE_W_PRESET_BYTES
 
@@ -383,22 +383,22 @@ def test_mode_wt_preset() -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", check=1) as xzfile:
-        xzfile.write("α")
+        xzfile.write("Ա")
         xzfile.change_block()
         xzfile.preset = 9
-        xzfile.write("β")
+        xzfile.write("Բ")
         xzfile.change_block()
-        xzfile.write("γ")
+        xzfile.write("Գ")
         xzfile.change_block()
-        xzfile.write("δ")
+        xzfile.write("Դ")
         xzfile.change_stream()
-        xzfile.write("ε")
+        xzfile.write("Ե")
         xzfile.change_block()
-        xzfile.write("ζ")
+        xzfile.write("Զ")
         xzfile.change_stream()
-        xzfile.write("η")
+        xzfile.write("Է")
         xzfile.change_block()
-        xzfile.write("θ")
+        xzfile.write("Ը")
 
     assert fileobj.getvalue() == TEST_MODE_W_PRESET_BYTES
 

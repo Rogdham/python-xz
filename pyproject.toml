@@ -21,7 +21,6 @@ ignore = [
     "TRY003",
     "TRY301",
 ]
-allowed-confusables = ["α", "β", "γ", "δ", "ε", "ζ", "η", "θ"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = [
