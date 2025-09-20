@@ -80,7 +80,7 @@ def xz_open(
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
     newline: Optional[str] = None,
-) -> XZFile: ...  # pragma: no cover
+) -> XZFile: ...
 
 
 @overload
@@ -97,7 +97,7 @@ def xz_open(
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
     newline: Optional[str] = None,
-) -> _XZFileText: ...  # pragma: no cover
+) -> _XZFileText: ...
 
 
 @overload
@@ -114,7 +114,7 @@ def xz_open(
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
     newline: Optional[str] = None,
-) -> Union[XZFile, _XZFileText]: ...  # pragma: no cover
+) -> Union[XZFile, _XZFileText]: ...
 
 
 def xz_open(

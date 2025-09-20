@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Optional, Protocol, Un
 _LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
 
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     # avoid circular dependency
     from xz.block import XZBlock
 

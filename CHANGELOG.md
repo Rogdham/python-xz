@@ -16,7 +16,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 ### :house: Internal
 
 - Fix test xz files generation for xz-utils 5.5.1+
+- Update license metadata as per [PEP 639](https://peps.python.org/pep-0639)
 - Freeze dev dependencies versions
+- Use `pyproject.toml` and modern build system
 - Update dev dependencies
 - Update GitHub actions dependencies
 - Add tests for PyPy 3.10 and 3.11
