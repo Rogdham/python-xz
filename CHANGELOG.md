@@ -19,6 +19,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Freeze dev dependencies versions
 - Update GitHub actions dependencies
 - Add tests for PyPy 3.10 and 3.11
+- Improve tox & CI pipelines
 
 ## [0.5.0] - 2023-02-27
 
