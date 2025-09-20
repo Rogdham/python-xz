@@ -24,11 +24,8 @@ _XZModesTextType = Literal["rt", "rt+", "wt", "wt+", "xt", "xt+"]
 
 
 class _BlockReadStrategyType(Protocol):
-    def on_create(self, block: "XZBlock") -> None:
-        ...  # pragma: no cover
+    def on_create(self, block: "XZBlock") -> None: ...  # pragma: no cover
 
-    def on_delete(self, block: "XZBlock") -> None:
-        ...  # pragma: no cover
+    def on_delete(self, block: "XZBlock") -> None: ...  # pragma: no cover
 
-    def on_read(self, block: "XZBlock") -> None:
-        ...  # pragma: no cover
+    def on_read(self, block: "XZBlock") -> None: ...  # pragma: no cover

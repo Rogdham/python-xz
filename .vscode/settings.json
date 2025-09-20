@@ -5,7 +5,9 @@
     ".eggs": true,
     "**/*.egg-info": true,
     ".coverage": true,
+    ".mypy_cache": true,
     ".pytest_cache": true,
+    ".ruff_cache": true,
     ".tox": true
   },
   "editor.detectIndentation": false,
@@ -23,8 +25,9 @@
     "editor.wordWrapColumn": 88
   },
   "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      "source.organizeImports": "explicit"
     }
   },
   "[yaml]": {
@@ -32,8 +35,6 @@
     "editor.tabSize": 2
   },
   "python.envFile": "${workspaceFolder}/.vscode/env",
-  "python.formatting.provider": "black",
   "python.linting.pylintEnabled": true,
-  "python.testing.pytestEnabled": true,
-  "python.sortImports.args": ["-sp .isort.cfg"]
+  "python.testing.pytestEnabled": true
 }

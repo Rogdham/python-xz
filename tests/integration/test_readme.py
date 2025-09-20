@@ -48,9 +48,7 @@ _README_CODE_BLOCKS = _parse_readme()
         for line_no, code_block in _README_CODE_BLOCKS
     ],
 )
-def test_readme(
-    code_block: str, tmp_path: Path
-) -> None:  # pylint: disable=redefined-outer-name
+def test_readme(code_block: str, tmp_path: Path) -> None:  # pylint: disable=redefined-outer-name
     path = tmp_path / "block.txt"
     path.write_text(code_block)
     failure_count, test_count = doctest.testfile(

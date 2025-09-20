@@ -67,8 +67,7 @@ def test_read_linear(
         while xz_file.read(DEFAULT_BUFFER_SIZE):
             assert (
                 # should not use much more memory, take 2 as error margin
-                ram_usage()
-                < one_block_memory * 2
+                ram_usage() < one_block_memory * 2
             ), f"Consumes too much RAM (at {100 * xz_file.tell() / len(xz_file):.0f}%)"
 
 
@@ -89,9 +88,10 @@ def test_partial_read_each_block(
             else:
                 assert (
                     # default strategy is max 8 blocks, take 10 as error margin
-                    ram_usage()
-                    < one_block_memory * 10
-                ), f"Consumes too much RAM (at {100 * xz_file.tell() / len(xz_file):.0f}%)"
+                    ram_usage() < one_block_memory * 10
+                ), (
+                    f"Consumes too much RAM (at {100 * xz_file.tell() / len(xz_file):.0f}%)"
+                )
 
 
 def test_write(
@@ -115,6 +115,5 @@ def test_write(
             else:
                 assert (
                     # should not use much more memory, take 2 as error margin
-                    ram_usage()
-                    < one_block_memory * 2
+                    ram_usage() < one_block_memory * 2
                 ), f"Consumes too much RAM (at {i / nb_blocks:.0f}%)"

@@ -40,7 +40,6 @@ jobs:
       matrix:
         env:
           - build
-          - format
           - generate-integration-files
           - lint
           - type

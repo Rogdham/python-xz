@@ -213,7 +213,7 @@ def test_read_wrong_uncompressed_size_too_big(
 
 
 def test_read_wrong_block_padding(
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
 ) -> None:
     fileobj = IOStatic(BLOCK_BYTES[:-5] + b"\xff" + BLOCK_BYTES[-4:])
     block = XZBlock(fileobj, 1, 89, 100)
@@ -228,7 +228,7 @@ def test_read_wrong_block_padding(
 
 
 def test_read_wrong_check(
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
 ) -> None:
     fileobj = IOStatic(BLOCK_BYTES[:-4] + b"\xff" * 4)
 
@@ -261,7 +261,7 @@ def test_read_truncated_data() -> None:
 
 
 def test_read_decompressor_eof(
-    data_pattern_locate: Callable[[bytes], Tuple[int, int]]
+    data_pattern_locate: Callable[[bytes], Tuple[int, int]],
 ) -> None:
     fileobj = IOStatic(
         bytes.fromhex(
