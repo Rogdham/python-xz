@@ -16,6 +16,8 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Utilities",
     "Topic :: System :: Archiving",
     "Topic :: System :: Archiving :: Compression",
@@ -84,7 +86,7 @@ files = "src"
 ignore_missing_imports = false
 follow_imports = "normal"
 # Platform configuration
-python_version = "3.11"
+python_version = "3.13"
 # Disallow dynamic typing
 disallow_any_unimported = true
 disallow_any_decorated = true

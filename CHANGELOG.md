@@ -21,7 +21,8 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Use `pyproject.toml` and modern build system
 - Update dev dependencies
 - Update GitHub actions dependencies
-- Add tests for PyPy 3.10 and 3.11
+- Add tests for CPython 3.12 and 3.13, and PyPy 3.10 and 3.11
+- Use CPython 3.13 for misc. tests
 - Improve tox & CI pipelines
 - Use ruff as linter and formatter
 
