@@ -1,4 +1,3 @@
-from functools import wraps
 from io import TextIOWrapper
 from typing import BinaryIO, Optional, Union, cast, overload
 
@@ -54,15 +53,17 @@ class _XZFileText(TextIOWrapper):
     def mode(self) -> str:
         return f"{self.xz_file.mode}t"
 
-    @wraps(XZFile.change_stream)
     def change_stream(self) -> None:
         self.flush()
         self.xz_file.change_stream()
 
-    @wraps(XZFile.change_block)
+    change_stream.__doc__ = XZFile.change_stream.__doc__
+
     def change_block(self) -> None:
         self.flush()
         self.xz_file.change_block()
+
+    change_block.__doc__ = XZFile.change_block.__doc__
 
 
 @overload

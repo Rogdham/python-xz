@@ -17,6 +17,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 - Fix test xz files generation for xz-utils 5.5.1+
 - Freeze dev dependencies versions
+- Update dev dependencies
 - Update GitHub actions dependencies
 - Add tests for PyPy 3.10 and 3.11
 - Improve tox & CI pipelines
