@@ -1,7 +1,6 @@
 from io import SEEK_CUR, SEEK_END
 import os
-import sys
-from typing import BinaryIO, Optional, cast
+from typing import BinaryIO, cast
 import warnings
 
 from xz.common import DEFAULT_CHECK, XZError
@@ -36,7 +35,7 @@ class XZFile(IOCombiner[XZStream]):
         check: int = -1,
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
-        block_read_strategy: Optional[_BlockReadStrategyType] = None,
+        block_read_strategy: _BlockReadStrategyType | None = None,
     ) -> None:
         """Open an XZ file in binary mode.
 
@@ -113,7 +112,7 @@ class XZFile(IOCombiner[XZStream]):
         self._close_check_empty = self._mode[0] != "r"
 
     @property
-    def _last_stream(self) -> Optional[XZStream]:
+    def _last_stream(self) -> XZStream | None:
         try:
             return self._fileobjs.last_item
         except KeyError:
@@ -145,10 +144,9 @@ class XZFile(IOCombiner[XZStream]):
         finally:
             if self._close_fileobj:
                 self.fileobj.close()  # self.fileobj exists at this point
-            if sys.version_info < (3, 10):  # pragma: no cover
-                # fix coverage issue on some Python versions
-                # see https://github.com/nedbat/coveragepy/issues/1480
-                pass
+
+            # fix coverage issue on some Python versions
+            pass  # noqa: PIE790
 
     @property
     def stream_boundaries(self) -> list[int]:

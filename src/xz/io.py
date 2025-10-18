@@ -6,7 +6,7 @@ from io import (
     IOBase,
     UnsupportedOperation,
 )
-from typing import BinaryIO, Generic, Optional, TypeVar, Union, cast
+from typing import BinaryIO, Generic, TypeVar, cast
 
 from xz.utils import FloorDict
 
@@ -150,7 +150,7 @@ class IOAbstract(IOBase):
             self._length = max(self._length, self._pos)
         return written_bytes
 
-    def truncate(self, size: Optional[int] = None) -> int:
+    def truncate(self, size: int | None = None) -> int:
         """Truncate file to size bytes.
         Size defaults to the current IO position as reported by tell().
 
@@ -242,7 +242,7 @@ class IOStatic(IOAbstract):
 class IOProxy(IOAbstract):
     def __init__(
         self,
-        fileobj: Union[BinaryIO, IOBase],  # see typing note on top of this file
+        fileobj: BinaryIO | IOBase,  # see typing note on top of this file
         start: int,
         end: int,
     ) -> None:
@@ -290,7 +290,7 @@ class IOCombiner(IOAbstract, Generic[T]):
 
     def _write(self, data: bytes) -> int:
         if self._fileobjs:
-            fileobj: Optional[T] = self._get_fileobj()
+            fileobj: T | None = self._get_fileobj()
         else:
             fileobj = None
 

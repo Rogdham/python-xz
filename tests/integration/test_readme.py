@@ -3,7 +3,6 @@ import doctest
 import os
 from pathlib import Path
 import shutil
-from typing import Optional
 
 import pytest
 
@@ -22,7 +21,7 @@ def change_dir(tmp_path: Path) -> Iterator[None]:
 def _parse_readme() -> list[tuple[int, str]]:
     code_blocks = []
     current_code_block = ""
-    current_code_block_line: Optional[int] = None
+    current_code_block_line: int | None = None
     with (Path(__file__).parent.parent.parent / "README.md").open() as fin:
         for line_no, line in enumerate(fin):
             if line.startswith("```"):

@@ -11,7 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### :boom: Breaking changes
 
-- End of Python 3.7 and 3.8 support
+- End of Python 3.7, 3.8, and 3.9 support
 
 ### :house: Internal
 

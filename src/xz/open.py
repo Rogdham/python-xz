@@ -1,5 +1,5 @@
 from io import TextIOWrapper
-from typing import BinaryIO, Optional, Union, cast, overload
+from typing import BinaryIO, cast, overload
 
 from xz.file import XZFile
 from xz.typing import (
@@ -22,10 +22,10 @@ class _XZFileText(TextIOWrapper):
         check: int = -1,
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
-        block_read_strategy: Optional[_BlockReadStrategyType] = None,
-        encoding: Optional[str] = None,
-        errors: Optional[str] = None,
-        newline: Optional[str] = None,
+        block_read_strategy: _BlockReadStrategyType | None = None,
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
     ) -> None:
         self.xz_file = XZFile(
             filename,
@@ -75,11 +75,11 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
-    block_read_strategy: Optional[_BlockReadStrategyType] = None,
+    block_read_strategy: _BlockReadStrategyType | None = None,
     # text-mode kwargs
-    encoding: Optional[str] = None,
-    errors: Optional[str] = None,
-    newline: Optional[str] = None,
+    encoding: str | None = None,
+    errors: str | None = None,
+    newline: str | None = None,
 ) -> XZFile: ...
 
 
@@ -92,11 +92,11 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
-    block_read_strategy: Optional[_BlockReadStrategyType] = None,
+    block_read_strategy: _BlockReadStrategyType | None = None,
     # text-mode kwargs
-    encoding: Optional[str] = None,
-    errors: Optional[str] = None,
-    newline: Optional[str] = None,
+    encoding: str | None = None,
+    errors: str | None = None,
+    newline: str | None = None,
 ) -> _XZFileText: ...
 
 
@@ -109,12 +109,12 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
-    block_read_strategy: Optional[_BlockReadStrategyType] = None,
+    block_read_strategy: _BlockReadStrategyType | None = None,
     # text-mode kwargs
-    encoding: Optional[str] = None,
-    errors: Optional[str] = None,
-    newline: Optional[str] = None,
-) -> Union[XZFile, _XZFileText]: ...
+    encoding: str | None = None,
+    errors: str | None = None,
+    newline: str | None = None,
+) -> XZFile | _XZFileText: ...
 
 
 def xz_open(
@@ -125,12 +125,12 @@ def xz_open(
     check: int = -1,
     preset: _LZMAPresetType = None,
     filters: _LZMAFiltersType = None,
-    block_read_strategy: Optional[_BlockReadStrategyType] = None,
+    block_read_strategy: _BlockReadStrategyType | None = None,
     # text-mode kwargs
-    encoding: Optional[str] = None,
-    errors: Optional[str] = None,
-    newline: Optional[str] = None,
-) -> Union[XZFile, _XZFileText]:
+    encoding: str | None = None,
+    errors: str | None = None,
+    newline: str | None = None,
+) -> XZFile | _XZFileText:
     """Open an XZ file in binary or text mode.
 
     filename can be either an actual file name (given as a str, bytes,

@@ -2,7 +2,7 @@ from collections.abc import Callable
 from io import SEEK_END, SEEK_SET, BytesIO, UnsupportedOperation
 import os
 from pathlib import Path
-from typing import Optional, Union, cast
+from typing import cast
 from unittest.mock import Mock, call
 
 import pytest
@@ -115,7 +115,7 @@ def test_read(
     tmp_path: Path,
     data_pattern_locate: Callable[[bytes], tuple[int, int]],
 ) -> None:
-    filename: Union[Path, BytesIO, str]
+    filename: Path | BytesIO | str
 
     if filetype == "fileobj":
         filename = BytesIO(FILE_BYTES)
@@ -186,7 +186,7 @@ def test_read_with_mode(
     tmp_path: Path,
     data_pattern_locate: Callable[[bytes], tuple[int, int]],
 ) -> None:
-    filename: Union[Path, BytesIO]
+    filename: Path | BytesIO
 
     if from_file:
         filename = tmp_path / "archive.xz"
@@ -268,7 +268,7 @@ def test_read_strategy_calls() -> None:
 
 
 @pytest.mark.parametrize("max_block_read_nb", [None, 1, 2, 7, 100])
-def test_read_default_strategy(max_block_read_nb: Optional[int]) -> None:
+def test_read_default_strategy(max_block_read_nb: int | None) -> None:
     fileobj = Mock(wraps=BytesIO(FILE_BYTES_MANY_SMALL_BLOCKS))
 
     max_block_read_nb_ = 8 if max_block_read_nb is None else max_block_read_nb
@@ -432,7 +432,7 @@ def test_write_with_mode(
         "1fb6f37d010000000004595a"  # footer
     )
 
-    filename: Union[Path, BytesIO]
+    filename: Path | BytesIO
 
     if from_file:
         filename = tmp_path / "archive.xz"

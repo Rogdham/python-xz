@@ -3,7 +3,7 @@ from io import DEFAULT_BUFFER_SIZE
 from lzma import compress
 from pathlib import Path
 from random import randbytes, seed
-from typing import BinaryIO, Optional, cast
+from typing import BinaryIO, cast
 
 import pytest
 
@@ -70,7 +70,7 @@ def test_read_linear(fileobj: BinaryIO, ram_usage: Callable[[], int]) -> None:
 def test_partial_read_each_block(
     fileobj: BinaryIO, ram_usage: Callable[[], int]
 ) -> None:
-    one_block_memory: Optional[int] = None
+    one_block_memory: int | None = None
 
     with XZFile(fileobj) as xz_file:
         for pos in xz_file.block_boundaries[1:]:
@@ -93,7 +93,7 @@ def test_write(tmp_path: Path, ram_usage: Callable[[], int]) -> None:
 
     seed(0)
 
-    one_block_memory: Optional[int] = None
+    one_block_memory: int | None = None
 
     with XZFile(tmp_path / "archive.xz", "w") as xz_file:
         for i in range(nb_blocks):

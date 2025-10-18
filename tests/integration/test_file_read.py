@@ -14,7 +14,9 @@ def test_read_all(integration_case: _IntegrationCase, data_pattern: bytes) -> No
         pos = 0
         stream_boundaries = []
         block_boundaries = []
-        for stream_item, metadata_stream in zip(streams_items, metadata["streams"]):
+        for stream_item, metadata_stream in zip(
+            streams_items, metadata["streams"], strict=True
+        ):
             stream_boundaries.append(pos)
             stream_pos, stream = stream_item
             assert stream_pos == pos
@@ -22,7 +24,7 @@ def test_read_all(integration_case: _IntegrationCase, data_pattern: bytes) -> No
             block_items = list(stream._fileobjs.items())
             assert len(block_items) == len(metadata_stream["blocks"])
             for block_item, metadata_block in zip(
-                block_items, metadata_stream["blocks"]
+                block_items, metadata_stream["blocks"], strict=True
             ):
                 block_boundaries.append(pos)
                 block_pos, block = block_item

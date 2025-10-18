@@ -1,7 +1,6 @@
 from io import BytesIO
 import lzma
 from pathlib import Path
-from typing import Optional
 from unittest.mock import Mock
 
 import pytest
@@ -99,9 +98,7 @@ def test_mode_rt_encoding(encoding: str, expected: str) -> None:
         ),
     ],
 )
-def test_mode_rt_encoding_errors(
-    errors: Optional[str], expected: Optional[str]
-) -> None:
+def test_mode_rt_encoding_errors(errors: str | None, expected: str | None) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000000ff12d9410200210116000000742fe5a301000a656e99636f"
@@ -127,7 +124,7 @@ def test_mode_rt_encoding_errors(
         pytest.param("\r\n", ["a\nb\rc\r\n", "d"], id="'\r\n'"),
     ],
 )
-def test_mode_rt_newline(newline: Optional[str], expected: list[str]) -> None:
+def test_mode_rt_newline(newline: str | None, expected: list[str]) -> None:
     fileobj = BytesIO(
         bytes.fromhex(
             "fd377a585a000000ff12d9410200210116000000742fe5a3010007610a620d63"
@@ -443,7 +440,7 @@ def test_mode_wt_encoding(encoding: str, data: str) -> None:
         ),
     ],
 )
-def test_mode_wt_encoding_errors(errors: Optional[str], data: Optional[bytes]) -> None:
+def test_mode_wt_encoding_errors(errors: str | None, data: bytes | None) -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", errors=errors) as xzfile:
@@ -468,7 +465,7 @@ def test_mode_wt_encoding_errors(errors: Optional[str], data: Optional[bytes]) -
         pytest.param("\r\n", b"a\r\nb\r\n", id="'\r\n'"),
     ],
 )
-def test_mode_wt_newline(newline: Optional[str], data: bytes) -> None:
+def test_mode_wt_newline(newline: str | None, data: bytes) -> None:
     fileobj = BytesIO()
 
     with xz_open(fileobj, "wt", newline=newline) as xzfile:

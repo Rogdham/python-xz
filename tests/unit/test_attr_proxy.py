@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pytest
 
 from xz.utils import AttrProxy
@@ -10,7 +8,7 @@ class Dest:
 
 
 class Src:
-    proxy: Optional[Dest] = None
+    proxy: Dest | None = None
     abc = AttrProxy[str]("proxy")
 
 

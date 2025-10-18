@@ -1,5 +1,5 @@
 from io import SEEK_CUR
-from typing import BinaryIO, Optional
+from typing import BinaryIO
 
 from xz.block import XZBlock
 from xz.common import (
@@ -22,7 +22,7 @@ class XZStream(IOCombiner[XZBlock]):
         check: int,
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
-        block_read_strategy: Optional[_BlockReadStrategyType] = None,
+        block_read_strategy: _BlockReadStrategyType | None = None,
     ) -> None:
         super().__init__()
         self.fileobj = fileobj
@@ -49,7 +49,7 @@ class XZStream(IOCombiner[XZBlock]):
     def parse(
         cls,
         fileobj: BinaryIO,
-        block_read_strategy: Optional[_BlockReadStrategyType] = None,
+        block_read_strategy: _BlockReadStrategyType | None = None,
     ) -> "XZStream":
         """Parse one XZ stream from a fileobj.
 

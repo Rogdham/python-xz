@@ -1,8 +1,8 @@
 from collections.abc import Mapping, Sequence
 from os import PathLike
-from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Optional, Protocol, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Protocol
 
-_LZMAFilenameType = Union[str, bytes, PathLike[str], PathLike[bytes], BinaryIO]
+_LZMAFilenameType = str | bytes | PathLike[str] | PathLike[bytes] | BinaryIO
 
 
 if TYPE_CHECKING:
@@ -10,8 +10,8 @@ if TYPE_CHECKING:
     from xz.block import XZBlock
 
 
-_LZMAPresetType = Optional[int]
-_LZMAFiltersType = Optional[Sequence[Mapping[str, Any]]]
+_LZMAPresetType = int | None
+_LZMAFiltersType = Sequence[Mapping[str, Any]] | None
 
 
 # all valid modes if we don't consider changing order nor repetitions

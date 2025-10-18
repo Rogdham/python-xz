@@ -13,7 +13,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -23,7 +22,7 @@ classifiers = [
     "Topic :: System :: Archiving",
     "Topic :: System :: Archiving :: Compression",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.urls]
 Homepage = "https://github.com/rogdham/python-xz"
@@ -139,7 +138,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 src = ["src"]
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["ALL"]

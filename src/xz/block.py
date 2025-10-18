@@ -1,6 +1,5 @@
 from io import DEFAULT_BUFFER_SIZE, SEEK_SET
 from lzma import FORMAT_XZ, LZMACompressor, LZMADecompressor, LZMAError
-from typing import Optional, Union
 
 from xz.common import (
     XZError,
@@ -122,7 +121,7 @@ class XZBlock(IOAbstract):
         uncompressed_size: int,
         preset: _LZMAPresetType = None,
         filters: _LZMAFiltersType = None,
-        block_read_strategy: Optional[_BlockReadStrategyType] = None,
+        block_read_strategy: _BlockReadStrategyType | None = None,
     ) -> None:
         super().__init__(uncompressed_size)
         self.fileobj = fileobj
@@ -131,7 +130,7 @@ class XZBlock(IOAbstract):
         self.filters = filters
         self.block_read_strategy = block_read_strategy or KeepBlockReadStrategy()
         self.unpadded_size = unpadded_size
-        self.operation: Union[BlockRead, BlockWrite, None] = None
+        self.operation: BlockRead | BlockWrite | None = None
 
     @property
     def uncompressed_size(self) -> int:
