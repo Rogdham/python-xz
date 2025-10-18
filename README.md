@@ -37,11 +37,11 @@ would read all previous blocks for nothing).
 |   📝 **write**    |                   |                      |                      |
 |     `w` mode      |      ✔️ yes       |        ✔️ yes        |        ✔️ yes        |
 |     `x` mode      |      ✔️ yes       |        ❌ no         |        ✔️ yes        |
-|     `a` mode      |   ✔️ new stream   |    ✔️ new stream     |      ⏳ planned      |
+|     `a` mode      |   ✔️ new stream   |    ✔️ new stream     |        ❌ no         |
 | `r+`/`w+`/… modes |       ❌ no       |        ❌ no         |        ✔️ yes        |
 |  several blocks   |       ❌ no       |        ❌ no         |        ✔️ yes        |
 |  several streams  | ❌ no<sup>6</sup> |  ❌ no<sup>6</sup>   |        ✔️ yes        |
-|  stream padding   |       ❌ no       |        ❌ no         |      ⏳ planned      |
+|  stream padding   |       ❌ no       |        ❌ no         |        ❌ no         |
 
 </div>
 
