@@ -90,7 +90,7 @@ class BlockWrite:
             self.fileobj.write(data)
             self.pos += len(data)
 
-    def compress(self, data: bytes) -> None:
+    def compress(self, data: bytes | memoryview) -> None:
         self._write(self.compressor.compress(data))
 
     def finish(self) -> tuple[int, int]:
@@ -136,7 +136,7 @@ class XZBlock(IOAbstract):
     def uncompressed_size(self) -> int:
         return self._length
 
-    def _read(self, size: int) -> bytes:
+    def _read(self, size: int) -> bytes | memoryview:
         # enforce read mode
         if not isinstance(self.operation, BlockRead):
             self._write_end()
@@ -164,7 +164,7 @@ class XZBlock(IOAbstract):
     def writable(self) -> bool:
         return isinstance(self.operation, BlockWrite) or not self._length
 
-    def _write(self, data: bytes) -> int:
+    def _write(self, data: memoryview) -> int:
         # enforce write mode
         if not isinstance(self.operation, BlockWrite):
             self.clear()

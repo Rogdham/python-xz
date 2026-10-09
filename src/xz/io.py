@@ -135,8 +135,8 @@ class IOAbstract(IOBase):
         if padding_size > 0:
             null_bytes = memoryview(bytearray(DEFAULT_BUFFER_SIZE))
             self._pos = self._length
-        data = memoryview(data)
-        while padding_size or data:
+        data_view = memoryview(data)
+        while padding_size or data_view:
             self._write_start()
             if padding_size > 0:
                 # pad with null bytes, not counted in written_bytes
@@ -144,8 +144,10 @@ class IOAbstract(IOBase):
                 written_len = self._write(padding)  # do not stop if nothing was written
                 padding_size -= written_len
             else:
-                written_len = self._write(data)  # do not stop if nothing was written
-                data = data[written_len:]
+                written_len = self._write(
+                    data_view
+                )  # do not stop if nothing was written
+                data_view = data_view[written_len:]
             self._pos += written_len
             self._length = max(self._length, self._pos)
         return written_bytes
@@ -186,7 +188,10 @@ class IOAbstract(IOBase):
 
     # the methods below are expected to be implemented by subclasses
 
-    def _read(self, size: int) -> bytes:  # pragma: no cover  # noqa: ARG002
+    def _read(
+        self,
+        size: int,  # noqa: ARG002
+    ) -> bytes | memoryview:  # pragma: no cover
         """Read and return up to size bytes, where size is an int.
 
         The size will not exceed the number of bytes between self._pos and
@@ -203,7 +208,7 @@ class IOAbstract(IOBase):
     def _write_after(self) -> None:
         """This method is called after the last write operation (usually on file close)."""
 
-    def _write(self, data: bytes) -> int:  # pragma: no cover  # noqa: ARG002
+    def _write(self, data: memoryview) -> int:  # pragma: no cover  # noqa: ARG002
         """Writes as many bytes from data as possible, and return the number
         of bytes written.
 
@@ -229,13 +234,13 @@ class IOAbstract(IOBase):
 
 class IOStatic(IOAbstract):
     def __init__(self, data: bytes) -> None:
-        self.data = bytearray(data)
+        self.data = memoryview(data)
         super().__init__(len(self.data))
 
     def writable(self) -> bool:
         return False
 
-    def _read(self, size: int) -> bytes:
+    def _read(self, size: int) -> bytes | memoryview:
         return self.data[self._pos : self._pos + size]
 
 
@@ -250,11 +255,11 @@ class IOProxy(IOAbstract):
         self.fileobj = fileobj
         self.start = start
 
-    def _read(self, size: int) -> bytes:
+    def _read(self, size: int) -> bytes | memoryview:
         self.fileobj.seek(self.start + self._pos, SEEK_SET)
         return self.fileobj.read(size)  # size already restricted by caller
 
-    def _write(self, data: bytes) -> int:
+    def _write(self, data: memoryview) -> int:
         self.fileobj.seek(self.start + self._pos, SEEK_SET)
         return self.fileobj.write(data)
 
@@ -277,7 +282,7 @@ class IOCombiner(IOAbstract, Generic[T]):
         fileobj.seek(self._pos - start, SEEK_SET)
         return fileobj
 
-    def _read(self, size: int) -> bytes:
+    def _read(self, size: int) -> bytes | memoryview:
         return self._get_fileobj().read(size)
 
     def _write_after(self) -> None:
@@ -288,7 +293,7 @@ class IOCombiner(IOAbstract, Generic[T]):
             else:
                 del self._fileobjs[self._fileobjs.last_key]
 
-    def _write(self, data: bytes) -> int:
+    def _write(self, data: memoryview) -> int:
         if self._fileobjs:
             fileobj: T | None = self._get_fileobj()
         else:
@@ -300,7 +305,7 @@ class IOCombiner(IOAbstract, Generic[T]):
 
         # newly created fileobj should be writable
         # otherwise this will raise UnsupportedOperation
-        return fileobj.write(data)
+        return fileobj.write(data.tobytes())
 
     def _truncate(self, size: int) -> None:
         start, fileobj = self._fileobjs.get_with_index(size)

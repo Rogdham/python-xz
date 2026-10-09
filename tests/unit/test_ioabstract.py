@@ -148,7 +148,7 @@ def test_tell_read() -> None:
         def __init__(self) -> None:
             super().__init__(10)
 
-        def _read(self, size: int) -> bytes:
+        def _read(self, size: int) -> bytes | memoryview:
             # for tests, does not rely on position
             return b"xyz"[:size]
 
@@ -188,7 +188,7 @@ def test_tell_read_empty() -> None:
             super().__init__(10)
             self.empty_reads = 100
 
-        def _read(self, size: int) -> bytes:  # noqa: ARG002
+        def _read(self, size: int) -> bytes | memoryview:  # noqa: ARG002
             self.empty_reads -= 1
             if self.empty_reads > 0:
                 return b""
@@ -232,7 +232,7 @@ def test_write_full(write_partial: bool) -> None:
         def _write_after(self) -> None:
             self.mock.write_finish()
 
-        def _write(self, data: bytes) -> int:
+        def _write(self, data: memoryview) -> int:
             self.mock.write(bytes(data))
             if write_partial:
                 return min(2, len(data))
@@ -350,7 +350,7 @@ def test_truncate_with_size(with_size: bool) -> None:
         def _write_after(self) -> None:
             self.mock.write_finish()
 
-        def _write(self, data: bytes) -> int:  # noqa: ARG002
+        def _write(self, data: memoryview) -> int:  # noqa: ARG002
             raise RuntimeError("should not be called")
 
         def _truncate(self, size: int) -> None:

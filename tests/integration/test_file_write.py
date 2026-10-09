@@ -27,7 +27,7 @@ def test(
             for block in stream["blocks"]:
                 xzfile.filters = block.get("filters")
                 xzfile.change_block()
-                xzfile.write(data[: block["length"]])
+                xzfile.write(data[: block["length"]].tobytes())
                 data = data[block["length"] :]
 
     assert not data

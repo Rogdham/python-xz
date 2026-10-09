@@ -1,6 +1,7 @@
 # ruff: noqa: PLR2004
 
 from binascii import crc32 as crc32int
+from collections.abc import Iterable
 import lzma
 from struct import pack, unpack
 from typing import cast
@@ -13,7 +14,7 @@ class XZError(Exception):
     pass
 
 
-def encode_mbi(value: int) -> bytes:
+def encode_mbi(value: int) -> bytearray:
     data = bytearray()
     while value >= 0x80:
         data.append((value & 0x7F) | 0x80)
@@ -22,7 +23,7 @@ def encode_mbi(value: int) -> bytes:
     return data
 
 
-def decode_mbi(data: bytes) -> tuple[int, int]:
+def decode_mbi(data: Iterable[int]) -> tuple[int, int]:
     value = 0
     for size, byte in enumerate(data):
         value |= (byte & 0x7F) << (size * 7)
@@ -92,31 +93,31 @@ def parse_xz_header(header: bytes) -> int:
 def parse_xz_index(index: bytes) -> list[tuple[int, int]]:
     if len(index) < 8 or len(index) % 4:
         raise XZError("index length")
-    index = memoryview(index)
-    if index[0]:
+    index_view = memoryview(index)
+    if index_view[0]:
         raise XZError("index indicator")
-    if crc32(index[:-4]) != index[-4:]:
+    if crc32(index_view[:-4].tobytes()) != index_view[-4:]:
         raise XZError("index crc32")
-    size, nb_records = decode_mbi(index[1:])
-    index = index[1 + size : -4]
+    size, nb_records = decode_mbi(index_view[1:])
+    index_view = index_view[1 + size : -4]
     # records
     records = []
     for _ in range(nb_records):
-        if not index:
+        if not index_view:
             raise XZError("index size")
-        size, unpadded_size = decode_mbi(index)
+        size, unpadded_size = decode_mbi(index_view)
         if not unpadded_size:
             raise XZError("index record unpadded size")
-        index = index[size:]
-        if not index:
+        index_view = index_view[size:]
+        if not index_view:
             raise XZError("index size")
-        size, uncompressed_size = decode_mbi(index)
+        size, uncompressed_size = decode_mbi(index_view)
         if not uncompressed_size:
             raise XZError("index record uncompressed size")
-        index = index[size:]
+        index_view = index_view[size:]
         records.append((unpadded_size, uncompressed_size))
     # index padding
-    if any(index):
+    if any(index_view):
         raise XZError("index padding")
     return records
 
