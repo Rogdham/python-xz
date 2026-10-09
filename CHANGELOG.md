@@ -5,12 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+For the purpose of determining breaking changes:
+
+- Only direct imports from top-level module `xz` are considered public API
+- A change that only impacts type hints validation is not considered a breaking change
+- Removing support for a version of Python that is not [officially
+  supported][python-versions] anymore is not considered a breaking change
+
+[python-versions]: https://devguide.python.org/versions/#supported-versions
+
 ## [Unreleased]
 
 [unreleased]: https://github.com/rogdham/python-xz/compare/v0.6.0...HEAD
 
 ### :house: Internal
 
+- End of Python 3.10 support
 - Add tests for PyPy 3.12
 - Update dev dependencies
 - Necessary code changes following dev dependency update: mypy, ruff
@@ -19,12 +29,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 [0.6.0]: https://github.com/rogdham/python-xz/releases/tag/v0.6.0
 
-### :boom: Breaking changes
-
-- End of Python 3.7, 3.8, and 3.9 support
-
 ### :house: Internal
 
+- End of Python 3.7, 3.8, and 3.9 support
 - Fix test xz files generation for xz-utils 5.5.1+
 - Update license metadata as per [PEP 639](https://peps.python.org/pep-0639)
 - Freeze dev dependencies versions
@@ -40,12 +47,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 [0.5.0]: https://github.com/rogdham/python-xz/releases/tag/v0.5.0
 
-### :boom: Breaking changes
-
-- End of Python 3.6 support
-
 ### :house: Internal
 
+- End of Python 3.6 support
 - Necessary code changes following dev dependency update: black, pylint, pytest
 - Refactor a descriptor following PEP 487
 - Add tests for CPython 3.11 and PyPy 3.9
