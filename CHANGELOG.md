@@ -11,6 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### :house: Internal
 
+- Add tests for PyPy 3.12
 - Update dev dependencies
 - Necessary code changes following dev dependency update: mypy, ruff
 
