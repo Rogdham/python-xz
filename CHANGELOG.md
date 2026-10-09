@@ -21,7 +21,7 @@ For the purpose of determining breaking changes:
 ### :house: Internal
 
 - End of Python 3.10 support
-- Add tests for PyPy 3.12
+- Add tests for CPython 3.15 and PyPy 3.12
 - Update dev dependencies
 - Necessary code changes following dev dependency update: mypy, ruff
 
