@@ -178,7 +178,12 @@ class XZFile(IOCombiner[XZStream]):
             self._append(streams.pop())
 
     def _create_fileobj(self) -> XZStream:
-        stream_pos = sum(len(stream.fileobj) for stream in self._fileobjs.values())
+        last_stream = self._last_stream
+        stream_pos = (
+            last_stream.fileobj.start + len(last_stream.fileobj)
+            if last_stream is not None
+            else 0
+        )
         return XZStream(
             IOProxy(
                 self.fileobj,
