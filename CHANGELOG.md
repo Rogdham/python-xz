@@ -14,9 +14,9 @@ For the purpose of determining breaking changes:
 
 [python-versions]: https://devguide.python.org/versions/#supported-versions
 
-## [Unreleased]
+## [0.7.0] - 2026-10-11
 
-[unreleased]: https://github.com/rogdham/python-xz/compare/v0.6.0...HEAD
+[0.7.0]: https://github.com/rogdham/python-xz/releases/tag/v0.7.0
 
 ### :house: Internal
 
