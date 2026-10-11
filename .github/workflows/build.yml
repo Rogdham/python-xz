@@ -8,6 +8,7 @@ on:
     tags:
       - "**"
   pull_request:
+  workflow_dispatch:
 
 permissions: {}
 
@@ -15,8 +16,45 @@ env:
   PY_COLORS: 1
 
 jobs:
-  tests-py:
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # fetch all commits for version computation
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.15"
+      - name: Install dependencies
+        run: python -m pip install -U build
+      - name: Build
+        run: python -m build
+      - name: List distributions
+        run: ls -lR dist
+      - name: Save build artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: build
+          path: dist
+      - name: Install sdist
+        run: python -m pip install dist/*.tar.gz
+      - name: Install dependencies
+        run: python -m pip install -r requirements-test.txt
+      - name: Test
+        run: pytest -vv
+      - name: Test integration files generation
+        run:
+          pytest -vv -m generate_integration_files --generate-integration-files --no-cov
+
+  tests-py:
+    name: Test | ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    needs:
+      - build
     strategy:
       matrix:
         python:
@@ -31,52 +69,79 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          submodules: true
+      - name: Restore build artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: build
+          path: dist
       - name: Setup Python ${{ matrix.python }}
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
+      - name: Install wheel
+        run: python -m pip install dist/*.whl
       - name: Install dependencies
-        run: pip install tox
-      - name: Run tests
-        run: tox run -e py
+        run: python -m pip install -r requirements-test.txt
+      - name: Test
+        run: pytest -vv
 
-  tests-misc:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        env:
-          - build
-          - generate-integration-files
-          - lint
-          - type
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # build env: fetch all commits for version computation
-          fetch-depth: ${{ matrix.env == 'build' && '0' || '1' }}
           persist-credentials: false
-          submodules: true
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.15"
       - name: Install dependencies
-        run: pip install tox
-      - name: Run ${{ matrix.env }}
-        run: tox run -e ${{ matrix.env }}
-      - if: ${{ matrix.env == 'build' }}
-        name: Save ${{ matrix.env }} artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        run: python -m pip install -r requirements-lint.txt
+      - name: ruff check
+        run: ruff check
+      - name: ruff format
+        run: ruff format --check
+
+  type:
+    name: Type
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          name: ${{ matrix.env }}
+          persist-credentials: false
+      - name: Restore build artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: build
           path: dist
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.15"
+      - name: Install dependencies
+        run: python -m pip install -r requirements-type.txt
+      - name: Create _version.py
+        run: echo '__version__ = ""' > src/xz/_version.py
+      - name: mypy
+        run: mypy
+      - name: Install wheel
+        run: python -m pip install dist/*.whl
+      - name: Install dependencies
+        run: python -m pip install -r requirements-test.txt
+      - name: mypy tests
+        run: mypy --namespace-packages --explicit-package-bases tests
 
   publish:
+    name: Publish to PyPI
     if: startsWith(github.ref, 'refs/tags')
     needs:
+      - build
+      - lint
       - tests-py
-      - tests-misc
+      - type
     runs-on: ubuntu-latest
     environment: publish
     permissions:
@@ -87,6 +152,8 @@ jobs:
         with:
           name: build
           path: dist
+      - name: List distributions
+        run: ls -lR dist
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:

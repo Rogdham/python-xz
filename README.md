@@ -8,7 +8,7 @@ _Leveraging the lzma module for fast (de)compression_
 
 [![GitHub build status](https://img.shields.io/github/actions/workflow/status/rogdham/python-xz/build.yml?branch=master)](https://github.com/rogdham/python-xz/actions?query=branch:master)
 [![Release on PyPI](https://img.shields.io/pypi/v/python-xz)](https://pypi.org/project/python-xz/)
-[![Code coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/rogdham/python-xz/search?q=fail+under&type=Code)
+[![Code coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/search?q=repo%3ARogdham%2Fpython-xz+fail_under&type=code)
 [![Mypy type checker](https://img.shields.io/badge/type_checker-mypy-informational)](https://mypy.readthedocs.io/)
 [![MIT License](https://img.shields.io/pypi/l/python-xz)](https://github.com/Rogdham/python-xz/blob/master/LICENSE.txt)
 

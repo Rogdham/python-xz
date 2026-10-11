@@ -24,6 +24,7 @@ For the purpose of determining breaking changes:
 - Add tests for CPython 3.15 and PyPy 3.12
 - Update dev dependencies
 - Necessary code changes following dev dependency update: mypy, ruff
+- Refactor CI pipeline
 
 ## [0.6.0] - 2025-10-18
 

@@ -7,8 +7,7 @@
     ".coverage": true,
     ".mypy_cache": true,
     ".pytest_cache": true,
-    ".ruff_cache": true,
-    ".tox": true
+    ".ruff_cache": true
   },
   "editor.detectIndentation": false,
   "editor.formatOnSave": true,
